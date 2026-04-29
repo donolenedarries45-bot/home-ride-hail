@@ -57,6 +57,19 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        surface: {
+          DEFAULT: "hsl(var(--surface))",
+          elevated: "hsl(var(--surface-elevated))",
+        },
+        pulse: {
+          DEFAULT: "hsl(var(--pulse))",
+          foreground: "hsl(var(--pulse-foreground))",
+        },
+      },
+      fontFamily: {
+        display: ["'Bricolage Grotesque'", "sans-serif"],
+        sans: ["Inter", "system-ui", "sans-serif"],
+        mono: ["'Geist Mono'", "ui-monospace", "monospace"],
       },
       borderRadius: {
         lg: "var(--radius)",
