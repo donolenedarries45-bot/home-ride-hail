@@ -52,9 +52,18 @@ export default function BecomeDriver() {
     const parsed = schema.safeParse(form);
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     setSubmitting(true);
+    const insertRow = {
+      user_id: user!.id,
+      full_name: parsed.data.full_name,
+      postal_code: parsed.data.postal_code,
+      address: parsed.data.address,
+      vehicle_make_model: parsed.data.vehicle_make_model,
+      vehicle_plate: parsed.data.vehicle_plate,
+      bio: parsed.data.bio ?? null,
+    };
     const { error, data } = await supabase
       .from("driver_applications")
-      .insert({ user_id: user!.id, ...parsed.data })
+      .insert(insertRow)
       .select("id, status, postal_code, reviewer_notes")
       .single();
     setSubmitting(false);
