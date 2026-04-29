@@ -14,16 +14,195 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      approved_postal_codes: {
+        Row: {
+          area_name: string
+          created_at: string
+          postal_code: string
+        }
+        Insert: {
+          area_name: string
+          created_at?: string
+          postal_code: string
+        }
+        Update: {
+          area_name?: string
+          created_at?: string
+          postal_code?: string
+        }
+        Relationships: []
+      }
+      driver_applications: {
+        Row: {
+          address: string
+          bio: string | null
+          created_at: string
+          full_name: string
+          id: string
+          postal_code: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewer_notes: string | null
+          status: Database["public"]["Enums"]["application_status"]
+          user_id: string
+          vehicle_make_model: string
+          vehicle_plate: string
+        }
+        Insert: {
+          address: string
+          bio?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          postal_code: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          user_id: string
+          vehicle_make_model: string
+          vehicle_plate: string
+        }
+        Update: {
+          address?: string
+          bio?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          postal_code?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewer_notes?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          user_id?: string
+          vehicle_make_model?: string
+          vehicle_plate?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_applications_postal_code_fkey"
+            columns: ["postal_code"]
+            isOneToOne: false
+            referencedRelation: "approved_postal_codes"
+            referencedColumns: ["postal_code"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          postal_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          postal_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          postal_code?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rides: {
+        Row: {
+          accepted_at: string | null
+          completed_at: string | null
+          created_at: string
+          driver_id: string | null
+          dropoff_address: string
+          fare_estimate: number | null
+          id: string
+          notes: string | null
+          pickup_address: string
+          postal_code: string
+          rider_id: string
+          status: Database["public"]["Enums"]["ride_status"]
+        }
+        Insert: {
+          accepted_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          driver_id?: string | null
+          dropoff_address: string
+          fare_estimate?: number | null
+          id?: string
+          notes?: string | null
+          pickup_address: string
+          postal_code: string
+          rider_id: string
+          status?: Database["public"]["Enums"]["ride_status"]
+        }
+        Update: {
+          accepted_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          driver_id?: string | null
+          dropoff_address?: string
+          fare_estimate?: number | null
+          id?: string
+          notes?: string | null
+          pickup_address?: string
+          postal_code?: string
+          rider_id?: string
+          status?: Database["public"]["Enums"]["ride_status"]
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "driver" | "rider"
+      application_status: "pending" | "approved" | "rejected"
+      ride_status:
+        | "requested"
+        | "accepted"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +329,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "driver", "rider"],
+      application_status: ["pending", "approved", "rejected"],
+      ride_status: [
+        "requested",
+        "accepted",
+        "in_progress",
+        "completed",
+        "cancelled",
+      ],
+    },
   },
 } as const
