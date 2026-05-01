@@ -10,7 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { MapPin, Navigation, Users } from "lucide-react";
+import { MapPin, Navigation, Users, Loader2 } from "lucide-react";
+import { useFareEstimate } from "@/hooks/useFareEstimate";
+import { DriverProfileCard } from "@/components/DriverProfileCard";
 
 const rideSchema = z.object({
   pickup_address: z.string().trim().min(3).max(200),
@@ -25,6 +27,8 @@ interface Ride {
   dropoff_address: string;
   status: string;
   created_at: string;
+  driver_id: string | null;
+  fare_estimate: number | null;
 }
 
 export default function RiderHome() {
@@ -36,6 +40,7 @@ export default function RiderHome() {
   const [postalCodes, setPostalCodes] = useState<{ postal_code: string; area_name: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [activeRide, setActiveRide] = useState<Ride | null>(null);
+  const fare = useFareEstimate(pickup, dropoff);
 
   useEffect(() => {
     supabase.from("approved_postal_codes").select("postal_code, area_name").then(({ data }) => {
@@ -75,7 +80,7 @@ export default function RiderHome() {
       dropoff_address: dropoff,
       postal_code: postalCode,
       notes: notes || null,
-      fare_estimate: Math.round((8 + Math.random() * 18) * 100) / 100,
+      fare_estimate: fare.fare ?? null,
     });
     setSubmitting(false);
     if (error) toast.error(error.message);
@@ -128,6 +133,17 @@ export default function RiderHome() {
                     </div>
                   </div>
                 </div>
+                {activeRide.driver_id && (
+                  <div className="mt-6">
+                    <DriverProfileCard driverId={activeRide.driver_id} />
+                  </div>
+                )}
+                {activeRide.fare_estimate != null && (
+                  <div className="mt-4 flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Estimated fare</span>
+                    <span className="font-mono text-base font-semibold text-primary">R{activeRide.fare_estimate}</span>
+                  </div>
+                )}
                 <Button variant="outline" onClick={cancelRide} className="mt-6 w-full border-border">Cancel ride</Button>
               </div>
             ) : (
@@ -161,8 +177,29 @@ export default function RiderHome() {
                   <Label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Note for driver (optional)</Label>
                   <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Quick note..." className="bg-input border-border resize-none" rows={2} />
                 </div>
+
+                <div className="rounded-2xl border border-border bg-input/30 p-4 min-h-[68px] flex items-center justify-between">
+                  {fare.loading ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="size-4 animate-spin" /> Estimating fare…
+                    </div>
+                  ) : fare.fare != null ? (
+                    <>
+                      <div>
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Estimated fare</p>
+                        <p className="font-mono text-xs text-muted-foreground">{fare.distanceKm} km · {fare.durationMin} min</p>
+                      </div>
+                      <p className="font-display text-2xl font-medium text-primary">R{fare.fare}</p>
+                    </>
+                  ) : fare.error ? (
+                    <p className="text-xs text-destructive">{fare.error}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Enter pickup &amp; dropoff to see your fare.</p>
+                  )}
+                </div>
+
                 <Button type="submit" disabled={submitting} className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary-glow font-semibold rounded-2xl">
-                  {submitting ? "Requesting..." : "Request a Ride"}
+                  {submitting ? "Requesting..." : fare.fare ? `Request ride · R${fare.fare}` : "Request a Ride"}
                 </Button>
               </form>
             )}
