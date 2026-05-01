@@ -13,19 +13,20 @@ const MOCK_DRIVERS = [
   { id: "4", name: "Priya K.",  lat: -33.9220, lng: 18.5520 },
 ];
 
-// Dark map styling to match the brand
+// Light, Uber/Bolt-style minimal map
 const MAP_STYLE: google.maps.MapTypeStyle[] = [
-  { elementType: "geometry", stylers: [{ color: "#0f1115" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#0f1115" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#8a8f98" }] },
-  { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#1f232b" }] },
+  { elementType: "geometry", stylers: [{ color: "#f3eee4" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#f3eee4" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#7a6f5f" }] },
+  { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#e6dfd1" }] },
   { featureType: "poi", stylers: [{ visibility: "off" }] },
-  { featureType: "road", elementType: "geometry", stylers: [{ color: "#1f232b" }] },
-  { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#0f1115" }] },
-  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2a2f3a" }] },
-  { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9aa0a8" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+  { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#e6dfd1" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+  { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#d9cfb8" }] },
+  { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#5a4f3f" }] },
   { featureType: "transit", stylers: [{ visibility: "off" }] },
-  { featureType: "water", elementType: "geometry", stylers: [{ color: "#0a1420" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#cfe2e8" }] },
 ];
 
 interface Props {
@@ -67,7 +68,8 @@ export function MapView({ pickupAddress, dropoffAddress, liveDriver }: Props) {
           disableDefaultUI: true,
           zoomControl: true,
           styles: MAP_STYLE,
-          backgroundColor: "#0f1115",
+          backgroundColor: "#f3eee4",
+          gestureHandling: "greedy",
         });
         mapRef.current = map;
 
@@ -78,9 +80,9 @@ export function MapView({ pickupAddress, dropoffAddress, liveDriver }: Props) {
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
             scale: 9,
-            fillColor: "#f5b324",
+            fillColor: "#F58A6F",
             fillOpacity: 1,
-            strokeColor: "#0f1115",
+            strokeColor: "#ffffff",
             strokeWeight: 3,
           },
           title: "Pickup",
@@ -93,20 +95,21 @@ export function MapView({ pickupAddress, dropoffAddress, liveDriver }: Props) {
             map,
             title: d.name,
             icon: {
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 7,
-              fillColor: "#22d3ee",
+              path: "M -8,-4 L -8,4 L 8,4 L 8,-4 Z",
+              scale: 1,
+              fillColor: "#1a1a1a",
               fillOpacity: 1,
-              strokeColor: "#0f1115",
+              strokeColor: "#ffffff",
               strokeWeight: 2,
+              rotation: Math.random() * 360,
             },
           })
         );
 
         directionsRendererRef.current = new google.maps.DirectionsRenderer({
           map,
-          suppressMarkers: false,
-          polylineOptions: { strokeColor: "#f5b324", strokeWeight: 5, strokeOpacity: 0.9 },
+          suppressMarkers: true,
+          polylineOptions: { strokeColor: "#1a1a1a", strokeWeight: 5, strokeOpacity: 0.95 },
         });
 
         setReady(true);
@@ -246,28 +249,18 @@ export function MapView({ pickupAddress, dropoffAddress, liveDriver }: Props) {
 
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-3xl border border-border surface">
+    <div className="relative h-full w-full overflow-hidden">
       <div ref={containerRef} className="absolute inset-0" />
       {!ready && !error && (
-        <div className="absolute inset-0 flex items-center justify-center text-xs font-mono text-muted-foreground">
+        <div className="absolute inset-0 flex items-center justify-center text-xs font-mono text-muted-foreground bg-muted">
           Loading map…
         </div>
       )}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-xs font-mono text-destructive">
+        <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-xs font-mono text-destructive bg-muted">
           {error}
         </div>
       )}
-
-      <div className="absolute right-4 bottom-4 bg-background/80 backdrop-blur-md border border-border px-3 py-2 rounded-lg pointer-events-none">
-        <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-0.5">Pickup</p>
-        <p className="text-xs font-mono">{pickupAddress || "—"}</p>
-      </div>
-
-      <div className="absolute left-4 top-4 flex items-center gap-2 bg-background/80 backdrop-blur-md border border-border px-3 py-1.5 rounded-full pointer-events-none">
-        <div className="size-1.5 rounded-full bg-pulse animate-pulse" />
-        <span className="text-[10px] font-mono uppercase tracking-widest">Elsies River · Live</span>
-      </div>
     </div>
   );
 }
