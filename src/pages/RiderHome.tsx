@@ -153,13 +153,14 @@ export default function RiderHome() {
       {!showMap && (
         <div className="absolute inset-0 bg-background">
           <div className="absolute inset-0" style={{ backgroundImage: "var(--gradient-glow)" }} />
-          <div className="absolute inset-x-0 top-1/4 px-6 text-center">
-            <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">Elsies River</p>
-            <h1 className="font-display font-light leading-[0.95] tracking-tight text-5xl">
-              Your neighborhood,<br />
+          <div className="absolute inset-x-0 top-[18%] px-6 text-center">
+            <h1 className="font-display font-bold tracking-tight text-5xl text-primary mb-2">KYK N LYN</h1>
+            <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-6">Elsies River</p>
+            <h2 className="font-display font-light leading-tight tracking-tight text-2xl">
+              Your neighborhood,{" "}
               <span className="text-primary italic font-medium">in motion.</span>
-            </h1>
-            <p className="mt-4 text-muted-foreground max-w-sm mx-auto">
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground max-w-sm mx-auto">
               Tap below to book a ride with a verified neighbor.
             </p>
           </div>
