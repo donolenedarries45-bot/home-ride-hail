@@ -185,7 +185,7 @@ export default function RiderHome() {
           {/* Right: Map */}
           <section className="lg:col-span-7">
             <div className="h-[640px]">
-              <MapView pickupAddress={pickup || "—"} />
+              <MapView pickupAddress={activeRide?.pickup_address || pickup || "—"} dropoffAddress={activeRide?.dropoff_address || dropoff} />
             </div>
           </section>
         </div>
