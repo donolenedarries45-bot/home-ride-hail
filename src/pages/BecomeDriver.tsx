@@ -75,7 +75,7 @@ export default function BecomeDriver() {
     <div className="min-h-screen">
       <AppNav />
       <main className="mx-auto max-w-3xl px-6 py-12">
-        <h1 className="font-display text-5xl font-light tracking-tight mb-2">Drive with Lantern.</h1>
+        <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl mb-2">Drive with Kyk n Lyn.</h1>
         <p className="text-muted-foreground mb-10">Two checks: your zip code must be in our network, then a human approves you.</p>
 
         {loading ? (
