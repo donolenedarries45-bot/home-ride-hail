@@ -31,14 +31,17 @@ const MAP_STYLE: google.maps.MapTypeStyle[] = [
 interface Props {
   pickupAddress?: string;
   dropoffAddress?: string;
+  liveDriver?: { lat: number; lng: number } | null;
 }
 
-export function MapView({ pickupAddress, dropoffAddress }: Props) {
+export function MapView({ pickupAddress, dropoffAddress, liveDriver }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
   const driverMarkersRef = useRef<google.maps.Marker[]>([]);
   const pickupMarkerRef = useRef<google.maps.Marker | null>(null);
+  const liveDriverMarkerRef = useRef<google.maps.Marker | null>(null);
+  const liveRouteRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -182,6 +185,65 @@ export function MapView({ pickupAddress, dropoffAddress }: Props) {
       }
     })();
   }, [pickupAddress, dropoffAddress, ready]);
+
+  // Live driver marker — animates to new position as updates arrive
+  useEffect(() => {
+    if (!ready || !mapRef.current) return;
+    const map = mapRef.current;
+
+    if (!liveDriver) {
+      liveDriverMarkerRef.current?.setMap(null);
+      liveDriverMarkerRef.current = null;
+      return;
+    }
+
+    const target = new google.maps.LatLng(liveDriver.lat, liveDriver.lng);
+
+    if (!liveDriverMarkerRef.current) {
+      liveDriverMarkerRef.current = new google.maps.Marker({
+        position: target,
+        map,
+        zIndex: 999,
+        title: "Your driver",
+        icon: {
+          path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+          scale: 7,
+          fillColor: "#22d3ee",
+          fillOpacity: 1,
+          strokeColor: "#0f1115",
+          strokeWeight: 3,
+        },
+      });
+      map.panTo(target);
+      return;
+    }
+
+    // Smoothly tween from current to new position
+    const marker = liveDriverMarkerRef.current;
+    const start = marker.getPosition();
+    if (!start) {
+      marker.setPosition(target);
+      return;
+    }
+    const startLat = start.lat();
+    const startLng = start.lng();
+    const endLat = target.lat();
+    const endLng = target.lng();
+    const t0 = performance.now();
+    const duration = 1200;
+    let raf = 0;
+    const step = (now: number) => {
+      const k = Math.min(1, (now - t0) / duration);
+      marker.setPosition({
+        lat: startLat + (endLat - startLat) * k,
+        lng: startLng + (endLng - startLng) * k,
+      });
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [liveDriver, ready]);
+
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-3xl border border-border surface">

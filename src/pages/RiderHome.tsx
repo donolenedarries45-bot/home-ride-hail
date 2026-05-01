@@ -40,6 +40,7 @@ export default function RiderHome() {
   const [postalCodes, setPostalCodes] = useState<{ postal_code: string; area_name: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [activeRide, setActiveRide] = useState<Ride | null>(null);
+  const [driverLoc, setDriverLoc] = useState<{ lat: number; lng: number } | null>(null);
   const fare = useFareEstimate(pickup, dropoff);
 
   useEffect(() => {
@@ -68,6 +69,38 @@ export default function RiderHome() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user]);
+
+  // Subscribe to live driver location once a driver is assigned
+  useEffect(() => {
+    const driverId = activeRide?.driver_id;
+    if (!driverId) { setDriverLoc(null); return; }
+
+    let cancelled = false;
+    const fetchLoc = async () => {
+      const { data } = await supabase
+        .from("driver_locations")
+        .select("latitude, longitude")
+        .eq("driver_id", driverId)
+        .maybeSingle();
+      if (!cancelled && data) setDriverLoc({ lat: data.latitude, lng: data.longitude });
+    };
+    fetchLoc();
+
+    const channel = supabase
+      .channel(`driver-loc-${driverId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "driver_locations", filter: `driver_id=eq.${driverId}` },
+        (payload: any) => {
+          const row = payload.new;
+          if (row?.latitude != null && row?.longitude != null) {
+            setDriverLoc({ lat: row.latitude, lng: row.longitude });
+          }
+        }
+      )
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [activeRide?.driver_id]);
 
   const requestRide = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,6 +175,12 @@ export default function RiderHome() {
                   <div className="mt-4 flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Estimated fare</span>
                     <span className="font-mono text-base font-semibold text-primary">R{activeRide.fare_estimate}</span>
+                  </div>
+                )}
+                {activeRide.driver_id && driverLoc && (
+                  <div className="mt-4 flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-pulse">
+                    <span className="size-1.5 rounded-full bg-pulse animate-pulse" />
+                    Driver en route — tracking live
                   </div>
                 )}
                 <Button variant="outline" onClick={cancelRide} className="mt-6 w-full border-border">Cancel ride</Button>
@@ -222,7 +261,7 @@ export default function RiderHome() {
           {/* Right: Map */}
           <section className="lg:col-span-7">
             <div className="h-[640px]">
-              <MapView pickupAddress={activeRide?.pickup_address || pickup || "—"} dropoffAddress={activeRide?.dropoff_address || dropoff} />
+              <MapView pickupAddress={activeRide?.pickup_address || pickup || "—"} dropoffAddress={activeRide?.dropoff_address || dropoff} liveDriver={driverLoc} />
             </div>
           </section>
         </div>
