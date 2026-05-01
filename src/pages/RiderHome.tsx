@@ -209,8 +209,7 @@ export default function RiderHome() {
           </SheetContent>
         </Sheet>
 
-        <div className="pointer-events-auto flex items-center gap-2 bg-card border border-border shadow-elevated px-4 py-2 rounded-full">
-          <div className="size-2 rounded-full bg-pulse animate-pulse" />
+        <div className="pointer-events-auto flex items-center gap-2 bg-primary text-primary-foreground border border-primary shadow-elevated px-4 py-2 rounded-full animate-pulse">
           <span className="text-xs font-medium">Elsies River</span>
         </div>
       </div>
