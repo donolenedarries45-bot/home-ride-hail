@@ -227,7 +227,7 @@ function DriverSignUp() {
         password: form.password,
         options: {
           emailRedirectTo: window.location.origin,
-          data: { full_name: form.fullName, postal_code: form.postalCode },
+          data: { full_name: form.fullName, postal_code: form.postalCode, phone: form.phone },
         },
       });
       if (signUpError) throw signUpError;
