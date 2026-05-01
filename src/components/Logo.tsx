@@ -8,8 +8,8 @@ export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
       : "text-lg md:text-3xl";
   return (
     <div className="flex items-center gap-2.5">
-      <div className={`${dot} rounded-full bg-primary shadow-[0_0_14px_hsl(var(--primary)/0.7)]`} />
-      <span className={`${text} font-bold tracking-tight font-serif whitespace-nowrap`}>Kyk n Lyn</span>
+      <div className={`${dot} rounded-full bg-primary shadow-[0_0_14px_hsl(var(--primary)/0.5)]`} />
+      <span className={`${text} font-semibold tracking-tight font-display whitespace-nowrap`}>Kyk n Lyn</span>
     </div>
   );
 }
