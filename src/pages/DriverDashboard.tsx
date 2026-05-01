@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { MapPin, Navigation, Clock } from "lucide-react";
 import { useBroadcastLocation } from "@/hooks/useBroadcastLocation";
+import { DriverWallet } from "@/components/DriverWallet";
+import { CompleteRideDialog } from "@/components/CompleteRideDialog";
 
 interface Ride {
   id: string;
