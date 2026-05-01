@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import BecomeDriver from "./pages/BecomeDriver";
 import DriverDashboard from "./pages/DriverDashboard";
 import Admin from "./pages/Admin";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +35,8 @@ const App = () => (
             <Route path="/become-driver" element={<Protected><BecomeDriver /></Protected>} />
             <Route path="/driver" element={<Protected><DriverDashboard /></Protected>} />
             <Route path="/admin" element={<Protected><Admin /></Protected>} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

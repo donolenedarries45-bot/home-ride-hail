@@ -199,6 +199,11 @@ export default function RiderHome() {
               >
                 Sign out
               </button>
+
+              <div className="mt-6 pt-4 border-t border-border flex flex-col gap-1">
+                <Link to="/terms" className="px-4 py-2 rounded-xl hover:bg-secondary text-xs text-muted-foreground">Terms of Service</Link>
+                <Link to="/privacy" className="px-4 py-2 rounded-xl hover:bg-secondary text-xs text-muted-foreground">Privacy Policy</Link>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
