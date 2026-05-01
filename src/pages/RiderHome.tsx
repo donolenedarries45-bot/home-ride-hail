@@ -133,6 +133,17 @@ export default function RiderHome() {
                     </div>
                   </div>
                 </div>
+                {activeRide.driver_id && (
+                  <div className="mt-6">
+                    <DriverProfileCard driverId={activeRide.driver_id} />
+                  </div>
+                )}
+                {activeRide.fare_estimate != null && (
+                  <div className="mt-4 flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Estimated fare</span>
+                    <span className="font-mono text-base font-semibold text-primary">R{activeRide.fare_estimate}</span>
+                  </div>
+                )}
                 <Button variant="outline" onClick={cancelRide} className="mt-6 w-full border-border">Cancel ride</Button>
               </div>
             ) : (
@@ -166,8 +177,29 @@ export default function RiderHome() {
                   <Label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Note for driver (optional)</Label>
                   <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Quick note..." className="bg-input border-border resize-none" rows={2} />
                 </div>
+
+                <div className="rounded-2xl border border-border bg-input/30 p-4 min-h-[68px] flex items-center justify-between">
+                  {fare.loading ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="size-4 animate-spin" /> Estimating fare…
+                    </div>
+                  ) : fare.fare != null ? (
+                    <>
+                      <div>
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Estimated fare</p>
+                        <p className="font-mono text-xs text-muted-foreground">{fare.distanceKm} km · {fare.durationMin} min</p>
+                      </div>
+                      <p className="font-display text-2xl font-medium text-primary">R{fare.fare}</p>
+                    </>
+                  ) : fare.error ? (
+                    <p className="text-xs text-destructive">{fare.error}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Enter pickup &amp; dropoff to see your fare.</p>
+                  )}
+                </div>
+
                 <Button type="submit" disabled={submitting} className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary-glow font-semibold rounded-2xl">
-                  {submitting ? "Requesting..." : "Request a Ride"}
+                  {submitting ? "Requesting..." : fare.fare ? `Request ride · R${fare.fare}` : "Request a Ride"}
                 </Button>
               </form>
             )}
