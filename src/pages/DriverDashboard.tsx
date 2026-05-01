@@ -118,7 +118,7 @@ export default function DriverDashboard() {
                       {r.notes && <p className="text-xs text-muted-foreground italic">"{r.notes}"</p>}
                     </div>
                     <div className="text-right shrink-0">
-                      {r.fare_estimate && <p className="font-display text-2xl text-primary mb-1">${r.fare_estimate}</p>}
+                      {r.fare_estimate && <p className="font-display text-2xl text-primary mb-1">R{r.fare_estimate}</p>}
                       <p className="text-[10px] font-mono uppercase text-muted-foreground mb-3">est. fare</p>
                       <Button onClick={() => accept(r)} disabled={!!myRide} className="bg-primary text-primary-foreground hover:bg-primary-glow">Accept</Button>
                     </div>
@@ -129,6 +129,16 @@ export default function DriverDashboard() {
           )}
         </section>
       </main>
+
+      {myRide && (
+        <CompleteRideDialog
+          open={completeOpen}
+          onOpenChange={setCompleteOpen}
+          rideId={myRide.id}
+          estimatedFare={myRide.fare_estimate}
+          onCompleted={load}
+        />
+      )}
     </div>
   );
 }
