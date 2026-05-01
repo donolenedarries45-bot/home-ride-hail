@@ -5,6 +5,7 @@ import { AppNav } from "@/components/AppNav";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { MapPin, Navigation, Clock } from "lucide-react";
+import { useBroadcastLocation } from "@/hooks/useBroadcastLocation";
 
 interface Ride {
   id: string;
@@ -23,6 +24,12 @@ export default function DriverDashboard() {
   const { user } = useAuth();
   const [openRides, setOpenRides] = useState<Ride[]>([]);
   const [myRide, setMyRide] = useState<Ride | null>(null);
+
+  useBroadcastLocation(
+    user?.id,
+    myRide?.id,
+    !!myRide && (myRide.status === "accepted" || myRide.status === "in_progress")
+  );
 
   const load = async () => {
     if (!user) return;
