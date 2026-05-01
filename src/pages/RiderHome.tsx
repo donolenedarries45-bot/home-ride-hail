@@ -99,7 +99,7 @@ export default function RiderHome() {
           {/* Left: Request panel */}
           <section className="lg:col-span-5 flex flex-col gap-6">
             <header>
-              <h1 className="font-display text-5xl font-light leading-[0.95] tracking-tight">
+              <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl">
                 Your neighborhood,<br />
                 <span className="text-primary italic font-medium">in motion.</span>
               </h1>
