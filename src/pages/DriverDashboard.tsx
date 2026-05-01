@@ -26,6 +26,7 @@ export default function DriverDashboard() {
   const { user } = useAuth();
   const [openRides, setOpenRides] = useState<Ride[]>([]);
   const [myRide, setMyRide] = useState<Ride | null>(null);
+  const [completeOpen, setCompleteOpen] = useState(false);
 
   useBroadcastLocation(
     user?.id,
@@ -62,8 +63,8 @@ export default function DriverDashboard() {
 
   const updateStatus = async (status: string) => {
     if (!myRide) return;
+    if (status === "completed") { setCompleteOpen(true); return; }
     const patch: any = { status };
-    if (status === "completed") patch.completed_at = new Date().toISOString();
     await supabase.from("rides").update(patch).eq("id", myRide.id);
     toast.success(`Ride ${status.replace("_", " ")}`);
   };
@@ -74,6 +75,8 @@ export default function DriverDashboard() {
       <main className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl mb-2">Driver hub.</h1>
         <p className="text-muted-foreground mb-10">Open rides in your neighborhood.</p>
+
+        <DriverWallet />
 
         {myRide && (
           <section className="mb-10 surface rounded-3xl border border-primary/30 p-8 glow-border">
