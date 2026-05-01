@@ -4,7 +4,7 @@ export function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   return (
     <div className="flex items-center gap-2.5">
       <div className={`${dot} rounded-full bg-primary shadow-[0_0_14px_hsl(var(--primary)/0.7)]`} />
-      <span className={`${text} font-display font-bold tracking-tight`}>LANTERN</span>
+      <span className={`${text} font-display font-bold tracking-tight`}>Kyk n Lyn</span>
     </div>
   );
 }
