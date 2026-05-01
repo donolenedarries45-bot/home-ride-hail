@@ -24,6 +24,7 @@ export default function Landing() {
               <span className="text-[10px] font-mono uppercase tracking-widest text-primary">Community-owned mobility</span>
             </div>
             <h1 className="font-display text-6xl md:text-7xl font-light leading-[0.95] tracking-tight">
+              <span className="block text-primary font-medium mb-2">Kyk n Lyn</span>
               Your neighborhood,<br />
               <span className="text-primary italic font-medium text-glow">in motion.</span>
             </h1>
