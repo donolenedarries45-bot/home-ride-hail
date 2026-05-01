@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { MapPin, Navigation, Loader2, Menu, Clock, Users, ChevronUp, X } from "lucide-react";
 import { useFareEstimate } from "@/hooks/useFareEstimate";
 import { DriverProfileCard } from "@/components/DriverProfileCard";
+import { SOSButton } from "@/components/SOSButton";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const rideSchema = z.object({
@@ -264,6 +265,12 @@ export default function RiderHome() {
             <Button variant="outline" onClick={cancelRide} className="mt-4 w-full h-12 rounded-2xl">
               <X className="size-4 mr-1" /> Cancel ride
             </Button>
+
+            {(activeRide.status === "accepted" || activeRide.status === "in_progress") && (
+              <div className="mt-3">
+                <SOSButton rideId={activeRide.id} userId={user!.id} role="rider" />
+              </div>
+            )}
           </div>
         ) : (
           /* Booking sheet — collapsed/expanded */

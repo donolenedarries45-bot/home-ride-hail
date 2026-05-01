@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { CommissionDashboard } from "@/components/CommissionDashboard";
+import { SOSAlertsPanel } from "@/components/SOSAlertsPanel";
 
 interface Application {
   id: string;
@@ -86,6 +87,8 @@ export default function Admin() {
       <AppNav />
       <main className="mx-auto max-w-6xl px-6 py-12">
         <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl mb-10">Admin.</h1>
+
+        <SOSAlertsPanel />
 
         <CommissionDashboard />
 

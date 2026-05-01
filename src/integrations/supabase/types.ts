@@ -354,6 +354,51 @@ export type Database = {
         }
         Relationships: []
       }
+      sos_alerts: {
+        Row: {
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          message: string | null
+          resolution_notes: string | null
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          ride_id: string
+          triggered_by: string
+          triggered_role: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          message?: string | null
+          resolution_notes?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          ride_id: string
+          triggered_by: string
+          triggered_role: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          message?: string | null
+          resolution_notes?: string | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          ride_id?: string
+          triggered_by?: string
+          triggered_role?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
