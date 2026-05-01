@@ -177,6 +177,12 @@ export default function RiderHome() {
                     <span className="font-mono text-base font-semibold text-primary">R{activeRide.fare_estimate}</span>
                   </div>
                 )}
+                {activeRide.driver_id && driverLoc && (
+                  <div className="mt-4 flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-pulse">
+                    <span className="size-1.5 rounded-full bg-pulse animate-pulse" />
+                    Driver en route — tracking live
+                  </div>
+                )}
                 <Button variant="outline" onClick={cancelRide} className="mt-6 w-full border-border">Cancel ride</Button>
               </div>
             ) : (
