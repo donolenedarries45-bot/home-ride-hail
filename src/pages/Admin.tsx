@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { CommissionDashboard } from "@/components/CommissionDashboard";
+import { SOSAlertsPanel } from "@/components/SOSAlertsPanel";
 
 interface Application {
   id: string;
