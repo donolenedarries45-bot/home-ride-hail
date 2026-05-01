@@ -32,6 +32,39 @@ export type Database = {
         }
         Relationships: []
       }
+      commission_settlements: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          driver_id: string
+          id: string
+          method: Database["public"]["Enums"]["settlement_method"]
+          notes: string | null
+          recorded_by: string
+          reference: string | null
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          driver_id: string
+          id?: string
+          method: Database["public"]["Enums"]["settlement_method"]
+          notes?: string | null
+          recorded_by: string
+          reference?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          driver_id?: string
+          id?: string
+          method?: Database["public"]["Enums"]["settlement_method"]
+          notes?: string | null
+          recorded_by?: string
+          reference?: string | null
+        }
+        Relationships: []
+      }
       driver_applications: {
         Row: {
           address: string
@@ -151,6 +184,36 @@ export type Database = {
         }
         Relationships: []
       }
+      driver_wallets: {
+        Row: {
+          balance_cents: number
+          created_at: string
+          driver_id: string
+          is_suspended: boolean
+          lifetime_commission_cents: number
+          lifetime_earned_cents: number
+          updated_at: string
+        }
+        Insert: {
+          balance_cents?: number
+          created_at?: string
+          driver_id: string
+          is_suspended?: boolean
+          lifetime_commission_cents?: number
+          lifetime_earned_cents?: number
+          updated_at?: string
+        }
+        Update: {
+          balance_cents?: number
+          created_at?: string
+          driver_id?: string
+          is_suspended?: boolean
+          lifetime_commission_cents?: number
+          lifetime_earned_cents?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -240,6 +303,7 @@ export type Database = {
       rides: {
         Row: {
           accepted_at: string | null
+          actual_fare: number | null
           completed_at: string | null
           created_at: string
           driver_id: string | null
@@ -255,6 +319,7 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          actual_fare?: number | null
           completed_at?: string | null
           created_at?: string
           driver_id?: string | null
@@ -270,6 +335,7 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          actual_fare?: number | null
           completed_at?: string | null
           created_at?: string
           driver_id?: string | null
@@ -306,11 +372,60 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_transactions: {
+        Row: {
+          amount_cents: number
+          balance_after_cents: number
+          created_at: string
+          description: string | null
+          driver_id: string
+          id: string
+          ride_id: string | null
+          settlement_id: string | null
+          type: Database["public"]["Enums"]["wallet_tx_type"]
+        }
+        Insert: {
+          amount_cents: number
+          balance_after_cents: number
+          created_at?: string
+          description?: string | null
+          driver_id: string
+          id?: string
+          ride_id?: string | null
+          settlement_id?: string | null
+          type: Database["public"]["Enums"]["wallet_tx_type"]
+        }
+        Update: {
+          amount_cents?: number
+          balance_after_cents?: number
+          created_at?: string
+          description?: string | null
+          driver_id?: string
+          id?: string
+          ride_id?: string | null
+          settlement_id?: string | null
+          type?: Database["public"]["Enums"]["wallet_tx_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      driver_in_good_standing: {
+        Args: { _driver_id: string }
+        Returns: boolean
+      }
+      ensure_driver_wallet: { Args: { _driver_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -329,6 +444,8 @@ export type Database = {
         | "in_progress"
         | "completed"
         | "cancelled"
+      settlement_method: "eft" | "cash" | "other"
+      wallet_tx_type: "commission" | "topup" | "adjustment"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -466,6 +583,8 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      settlement_method: ["eft", "cash", "other"],
+      wallet_tx_type: ["commission", "topup", "adjustment"],
     },
   },
 } as const

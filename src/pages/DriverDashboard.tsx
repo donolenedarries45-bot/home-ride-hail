@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { MapPin, Navigation, Clock } from "lucide-react";
 import { useBroadcastLocation } from "@/hooks/useBroadcastLocation";
+import { DriverWallet } from "@/components/DriverWallet";
+import { CompleteRideDialog } from "@/components/CompleteRideDialog";
 
 interface Ride {
   id: string;
@@ -24,6 +26,7 @@ export default function DriverDashboard() {
   const { user } = useAuth();
   const [openRides, setOpenRides] = useState<Ride[]>([]);
   const [myRide, setMyRide] = useState<Ride | null>(null);
+  const [completeOpen, setCompleteOpen] = useState(false);
 
   useBroadcastLocation(
     user?.id,
@@ -60,8 +63,8 @@ export default function DriverDashboard() {
 
   const updateStatus = async (status: string) => {
     if (!myRide) return;
+    if (status === "completed") { setCompleteOpen(true); return; }
     const patch: any = { status };
-    if (status === "completed") patch.completed_at = new Date().toISOString();
     await supabase.from("rides").update(patch).eq("id", myRide.id);
     toast.success(`Ride ${status.replace("_", " ")}`);
   };
@@ -72,6 +75,8 @@ export default function DriverDashboard() {
       <main className="mx-auto max-w-5xl px-6 py-12">
         <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl mb-2">Driver hub.</h1>
         <p className="text-muted-foreground mb-10">Open rides in your neighborhood.</p>
+
+        <DriverWallet />
 
         {myRide && (
           <section className="mb-10 surface rounded-3xl border border-primary/30 p-8 glow-border">
@@ -113,7 +118,7 @@ export default function DriverDashboard() {
                       {r.notes && <p className="text-xs text-muted-foreground italic">"{r.notes}"</p>}
                     </div>
                     <div className="text-right shrink-0">
-                      {r.fare_estimate && <p className="font-display text-2xl text-primary mb-1">${r.fare_estimate}</p>}
+                      {r.fare_estimate && <p className="font-display text-2xl text-primary mb-1">R{r.fare_estimate}</p>}
                       <p className="text-[10px] font-mono uppercase text-muted-foreground mb-3">est. fare</p>
                       <Button onClick={() => accept(r)} disabled={!!myRide} className="bg-primary text-primary-foreground hover:bg-primary-glow">Accept</Button>
                     </div>
@@ -124,6 +129,16 @@ export default function DriverDashboard() {
           )}
         </section>
       </main>
+
+      {myRide && (
+        <CompleteRideDialog
+          open={completeOpen}
+          onOpenChange={setCompleteOpen}
+          rideId={myRide.id}
+          estimatedFare={myRide.fare_estimate}
+          onCompleted={load}
+        />
+      )}
     </div>
   );
 }
