@@ -39,14 +39,25 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          id_number: string | null
+          license_expiry: string | null
+          license_number: string | null
+          phone: string | null
           postal_code: string
+          profile_photo_path: string | null
+          proof_of_address_path: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           reviewer_notes: string | null
           status: Database["public"]["Enums"]["application_status"]
           user_id: string
+          vehicle_color: string | null
           vehicle_make_model: string
+          vehicle_photo_path: string | null
           vehicle_plate: string
+          vehicle_seats: number | null
+          vehicle_year: number | null
+          years_driving: number | null
         }
         Insert: {
           address: string
@@ -54,14 +65,25 @@ export type Database = {
           created_at?: string
           full_name: string
           id?: string
+          id_number?: string | null
+          license_expiry?: string | null
+          license_number?: string | null
+          phone?: string | null
           postal_code: string
+          profile_photo_path?: string | null
+          proof_of_address_path?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           reviewer_notes?: string | null
           status?: Database["public"]["Enums"]["application_status"]
           user_id: string
+          vehicle_color?: string | null
           vehicle_make_model: string
+          vehicle_photo_path?: string | null
           vehicle_plate: string
+          vehicle_seats?: number | null
+          vehicle_year?: number | null
+          years_driving?: number | null
         }
         Update: {
           address?: string
@@ -69,14 +91,25 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          id_number?: string | null
+          license_expiry?: string | null
+          license_number?: string | null
+          phone?: string | null
           postal_code?: string
+          profile_photo_path?: string | null
+          proof_of_address_path?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           reviewer_notes?: string | null
           status?: Database["public"]["Enums"]["application_status"]
           user_id?: string
+          vehicle_color?: string | null
           vehicle_make_model?: string
+          vehicle_photo_path?: string | null
           vehicle_plate?: string
+          vehicle_seats?: number | null
+          vehicle_year?: number | null
+          years_driving?: number | null
         }
         Relationships: [
           {
