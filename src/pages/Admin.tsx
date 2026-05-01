@@ -84,7 +84,7 @@ export default function Admin() {
     <div className="min-h-screen">
       <AppNav />
       <main className="mx-auto max-w-6xl px-6 py-12">
-        <h1 className="font-display text-5xl font-light tracking-tight mb-10">Admin.</h1>
+        <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl mb-10">Admin.</h1>
 
         <section className="mb-12">
           <h2 className="font-display text-xl mb-4">Driver applications <span className="text-muted-foreground text-sm">({apps.filter(a => a.status === "pending").length} pending)</span></h2>

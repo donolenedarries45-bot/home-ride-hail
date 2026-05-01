@@ -63,7 +63,7 @@ export default function DriverDashboard() {
     <div className="min-h-screen">
       <AppNav />
       <main className="mx-auto max-w-5xl px-6 py-12">
-        <h1 className="font-display text-5xl font-light tracking-tight mb-2">Driver hub.</h1>
+        <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl mb-2">Driver hub.</h1>
         <p className="text-muted-foreground mb-10">Open rides in your neighborhood.</p>
 
         {myRide && (
