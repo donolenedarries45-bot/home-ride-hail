@@ -12,17 +12,17 @@ export function AppNav() {
 
   return (
     <nav className="sticky top-0 z-40 h-16 border-b border-border bg-background/70 backdrop-blur-xl">
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-6">
-        <Link to="/"><Logo /></Link>
+      <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-3 px-4 md:px-6">
+        <Link to="/" className="shrink-0"><Logo /></Link>
         <div className="flex items-center gap-1 text-sm">
           {user && (
             <>
-              <Link to="/" className="px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors">Ride</Link>
+              <Link to="/" className="px-2 md:px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Ride</Link>
               {isDriver && (
-                <Link to="/driver" className="px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors">Drive</Link>
+                <Link to="/driver" className="px-2 md:px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Drive</Link>
               )}
               {!isDriver && (
-                <Link to="/become-driver" className="px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors">Become a driver</Link>
+                <Link to="/become-driver" className="px-2 md:px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Drive</Link>
               )}
               {isAdmin && (
                 <Link to="/admin" className="px-3 py-1.5 text-primary hover:text-primary-glow transition-colors font-medium">Admin</Link>
