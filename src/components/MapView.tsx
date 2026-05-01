@@ -1,85 +1,205 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Loader } from "@googlemaps/js-api-loader";
+import { supabase } from "@/integrations/supabase/client";
 
-interface Driver { id: string; x: number; y: number; name: string; }
+// Elsies River, Cape Town, South Africa
+const ELSIES_RIVER = { lat: -33.9239, lng: 18.5483 };
 
-const MOCK_DRIVERS: Driver[] = [
-  { id: "1", x: 28, y: 38, name: "Marcus C." },
-  { id: "2", x: 62, y: 52, name: "Elena R." },
-  { id: "3", x: 45, y: 70, name: "Sam T." },
-  { id: "4", x: 78, y: 30, name: "Priya K." },
+// Mock nearby drivers (offsets in degrees, ~100m each)
+const MOCK_DRIVERS = [
+  { id: "1", name: "Marcus C.", lat: -33.9215, lng: 18.5460 },
+  { id: "2", name: "Elena R.",  lat: -33.9265, lng: 18.5510 },
+  { id: "3", name: "Sam T.",    lat: -33.9255, lng: 18.5450 },
+  { id: "4", name: "Priya K.",  lat: -33.9220, lng: 18.5520 },
 ];
 
-export function MapView({ pickupAddress }: { pickupAddress?: string }) {
-  const [drivers, setDrivers] = useState(MOCK_DRIVERS);
+// Dark map styling to match the brand
+const MAP_STYLE: google.maps.MapTypeStyle[] = [
+  { elementType: "geometry", stylers: [{ color: "#0f1115" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#0f1115" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#8a8f98" }] },
+  { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#1f232b" }] },
+  { featureType: "poi", stylers: [{ visibility: "off" }] },
+  { featureType: "road", elementType: "geometry", stylers: [{ color: "#1f232b" }] },
+  { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#0f1115" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2a2f3a" }] },
+  { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9aa0a8" }] },
+  { featureType: "transit", stylers: [{ visibility: "off" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#0a1420" }] },
+];
 
-  // Subtly drift drivers to feel alive
+interface Props {
+  pickupAddress?: string;
+  dropoffAddress?: string;
+}
+
+export function MapView({ pickupAddress, dropoffAddress }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
+  const driverMarkersRef = useRef<google.maps.Marker[]>([]);
+  const pickupMarkerRef = useRef<google.maps.Marker | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+
+  // Initialize map once
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error: fnErr } = await supabase.functions.invoke("get-maps-key");
+        if (fnErr || !data?.key) throw new Error("Could not load map key");
+        const loader = new Loader({ apiKey: data.key, version: "weekly", libraries: ["places", "routes"] });
+        const google = await loader.load();
+        if (cancelled || !containerRef.current) return;
+
+        const map = new google.maps.Map(containerRef.current, {
+          center: ELSIES_RIVER,
+          zoom: 14,
+          disableDefaultUI: true,
+          zoomControl: true,
+          styles: MAP_STYLE,
+          backgroundColor: "#0f1115",
+        });
+        mapRef.current = map;
+
+        // Pickup pin (center)
+        pickupMarkerRef.current = new google.maps.Marker({
+          position: ELSIES_RIVER,
+          map,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 9,
+            fillColor: "#f5b324",
+            fillOpacity: 1,
+            strokeColor: "#0f1115",
+            strokeWeight: 3,
+          },
+          title: "Pickup",
+        });
+
+        // Driver markers
+        driverMarkersRef.current = MOCK_DRIVERS.map(d =>
+          new google.maps.Marker({
+            position: { lat: d.lat, lng: d.lng },
+            map,
+            title: d.name,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 7,
+              fillColor: "#22d3ee",
+              fillOpacity: 1,
+              strokeColor: "#0f1115",
+              strokeWeight: 2,
+            },
+          })
+        );
+
+        directionsRendererRef.current = new google.maps.DirectionsRenderer({
+          map,
+          suppressMarkers: false,
+          polylineOptions: { strokeColor: "#f5b324", strokeWeight: 5, strokeOpacity: 0.9 },
+        });
+
+        setReady(true);
+      } catch (e: any) {
+        setError(e.message ?? "Failed to load map");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Drift drivers slightly to feel alive
+  useEffect(() => {
+    if (!ready) return;
     const t = setInterval(() => {
-      setDrivers(prev => prev.map(d => ({
-        ...d,
-        x: Math.max(8, Math.min(92, d.x + (Math.random() - 0.5) * 1.5)),
-        y: Math.max(8, Math.min(92, d.y + (Math.random() - 0.5) * 1.5)),
-      })));
+      driverMarkersRef.current.forEach(m => {
+        const p = m.getPosition();
+        if (!p) return;
+        m.setPosition({
+          lat: p.lat() + (Math.random() - 0.5) * 0.0006,
+          lng: p.lng() + (Math.random() - 0.5) * 0.0006,
+        });
+      });
     }, 2200);
     return () => clearInterval(t);
-  }, []);
+  }, [ready]);
+
+  // Geocode + route when pickup/dropoff change
+  useEffect(() => {
+    if (!ready || !mapRef.current) return;
+    const map = mapRef.current;
+    const renderer = directionsRendererRef.current!;
+    const geocoder = new google.maps.Geocoder();
+    const region = ", Elsies River, Cape Town, South Africa";
+
+    const geocode = (addr: string) =>
+      new Promise<google.maps.LatLng | null>(resolve => {
+        geocoder.geocode({ address: addr + region }, (results, status) => {
+          if (status === "OK" && results?.[0]) resolve(results[0].geometry.location);
+          else resolve(null);
+        });
+      });
+
+    (async () => {
+      const pickup = pickupAddress?.trim();
+      const dropoff = dropoffAddress?.trim();
+
+      if (pickup && dropoff && pickup !== "—" && dropoff !== "—") {
+        const [from, to] = await Promise.all([geocode(pickup), geocode(dropoff)]);
+        if (from && to) {
+          const ds = new google.maps.DirectionsService();
+          ds.route(
+            { origin: from, destination: to, travelMode: google.maps.TravelMode.DRIVING },
+            (res, status) => {
+              if (status === "OK" && res) {
+                renderer.setDirections(res);
+                pickupMarkerRef.current?.setMap(null);
+              }
+            }
+          );
+          return;
+        }
+      }
+
+      // No route — recenter on pickup if we can geocode it, else Elsies River
+      renderer.set("directions", null);
+      pickupMarkerRef.current?.setMap(map);
+      if (pickup && pickup !== "—") {
+        const loc = await geocode(pickup);
+        if (loc) {
+          map.panTo(loc);
+          pickupMarkerRef.current?.setPosition(loc);
+        }
+      } else {
+        map.panTo(ELSIES_RIVER);
+        pickupMarkerRef.current?.setPosition(ELSIES_RIVER);
+      }
+    })();
+  }, [pickupAddress, dropoffAddress, ready]);
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-3xl border border-border surface">
-      {/* Stylized street grid */}
-      <svg className="absolute inset-0 size-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <defs>
-          <pattern id="grid" width="8" height="8" patternUnits="userSpaceOnUse">
-            <path d="M 8 0 L 0 0 0 8" fill="none" stroke="hsl(var(--border))" strokeWidth="0.15" />
-          </pattern>
-          <radialGradient id="glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="hsl(43 96% 56% / 0.18)" />
-            <stop offset="100%" stopColor="transparent" />
-          </radialGradient>
-        </defs>
-        <rect width="100" height="100" fill="url(#grid)" />
-        {/* Curved "river" + main road */}
-        <path d="M 0 60 Q 30 40 60 55 T 100 50" stroke="hsl(var(--primary) / 0.25)" strokeWidth="0.6" fill="none" />
-        <path d="M 20 0 L 22 100" stroke="hsl(var(--border))" strokeWidth="0.4" />
-        <path d="M 0 75 L 100 72" stroke="hsl(var(--border))" strokeWidth="0.4" />
-        <path d="M 70 0 L 72 100" stroke="hsl(var(--border))" strokeWidth="0.4" />
-        <circle cx="50" cy="50" r="40" fill="url(#glow)" />
-      </svg>
-
-      {/* Pickup pin */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <div className="ripple relative size-10">
-          <div className="absolute inset-0 m-auto size-4 rounded-full bg-primary shadow-[0_0_20px_hsl(var(--primary)/0.8)]" />
+      <div ref={containerRef} className="absolute inset-0" />
+      {!ready && !error && (
+        <div className="absolute inset-0 flex items-center justify-center text-xs font-mono text-muted-foreground">
+          Loading map…
         </div>
-      </div>
-
-      {/* Drivers */}
-      {drivers.map(d => (
-        <div
-          key={d.id}
-          className="absolute -translate-x-1/2 -translate-y-1/2 transition-all duration-2000 ease-linear"
-          style={{ left: `${d.x}%`, top: `${d.y}%` }}
-        >
-          <div className="group relative">
-            <div className="size-9 rounded-full border border-pulse/40 bg-pulse/10 backdrop-blur-md flex items-center justify-center pulsing-dot">
-              <div className="size-2.5 rounded-full bg-pulse shadow-[0_0_10px_hsl(var(--pulse)/0.7)]" />
-            </div>
-            <div className="absolute left-1/2 -translate-x-1/2 -bottom-7 px-2 py-0.5 rounded-md bg-surface-elevated border border-border whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-              <p className="text-[10px] font-mono text-muted-foreground">{d.name}</p>
-            </div>
-          </div>
+      )}
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center px-6 text-center text-xs font-mono text-destructive">
+          {error}
         </div>
-      ))}
+      )}
 
-      {/* Coordinate badge */}
-      <div className="absolute right-4 bottom-4 bg-background/80 backdrop-blur-md border border-border px-3 py-2 rounded-lg">
+      <div className="absolute right-4 bottom-4 bg-background/80 backdrop-blur-md border border-border px-3 py-2 rounded-lg pointer-events-none">
         <p className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground mb-0.5">Pickup</p>
         <p className="text-xs font-mono">{pickupAddress || "—"}</p>
       </div>
 
-      <div className="absolute left-4 top-4 flex items-center gap-2 bg-background/80 backdrop-blur-md border border-border px-3 py-1.5 rounded-full">
+      <div className="absolute left-4 top-4 flex items-center gap-2 bg-background/80 backdrop-blur-md border border-border px-3 py-1.5 rounded-full pointer-events-none">
         <div className="size-1.5 rounded-full bg-pulse animate-pulse" />
-        <span className="text-[10px] font-mono uppercase tracking-widest">{drivers.length} drivers nearby</span>
+        <span className="text-[10px] font-mono uppercase tracking-widest">Elsies River · Live</span>
       </div>
     </div>
   );
