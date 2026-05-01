@@ -8,6 +8,7 @@ import { MapPin, Navigation, Clock } from "lucide-react";
 import { useBroadcastLocation } from "@/hooks/useBroadcastLocation";
 import { DriverWallet } from "@/components/DriverWallet";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
+import { SOSButton } from "@/components/SOSButton";
 
 interface Ride {
   id: string;
@@ -93,6 +94,10 @@ export default function DriverDashboard() {
               {myRide.status === "accepted" && <Button onClick={() => updateStatus("in_progress")} className="bg-primary text-primary-foreground hover:bg-primary-glow">Start ride</Button>}
               {myRide.status === "in_progress" && <Button onClick={() => updateStatus("completed")} className="bg-pulse text-pulse-foreground hover:bg-pulse/90">Complete ride</Button>}
               <Button variant="outline" onClick={() => updateStatus("cancelled")} className="border-border">Cancel</Button>
+            </div>
+
+            <div className="mt-4">
+              <SOSButton rideId={myRide.id} userId={user!.id} role="driver" />
             </div>
           </section>
         )}
