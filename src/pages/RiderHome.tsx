@@ -158,10 +158,10 @@ export default function RiderHome() {
             <h1 className="font-display font-bold tracking-tight text-5xl text-primary mb-3">KYK N LYN</h1>
             <img
               src={logoMark}
-              alt="KYK N LYN — hands connecting"
-              width={140}
-              height={140}
-              className="mx-auto mb-3 w-28 h-28 object-contain"
+              alt="KYK N LYN — hands connecting communities"
+              width={320}
+              height={120}
+              className="mx-auto mb-2 w-64 h-24 object-contain"
             />
             <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-6">Elsies River</p>
             <h2 className="font-display font-light leading-tight tracking-tight text-2xl">
