@@ -26,7 +26,7 @@ export default function Privacy() {
               respect of your personal information.
             </p>
             <p className="text-muted-foreground leading-relaxed mt-2">
-              <strong>Information Officer:</strong> [Founder name to be inserted]<br />
+              <strong>Information Officer:</strong> Donolene Abigail Murthall Dick (Founder)<br />
               <strong>Email:</strong> <a href="mailto:info-officer@kyknlyn.co.za" className="text-primary underline">info-officer@kyknlyn.co.za</a><br />
               Our Information Officer will be registered with the Information Regulator of South Africa
               prior to public launch.
