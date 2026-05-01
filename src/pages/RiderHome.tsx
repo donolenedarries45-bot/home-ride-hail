@@ -10,7 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { MapPin, Navigation, Users } from "lucide-react";
+import { MapPin, Navigation, Users, Loader2 } from "lucide-react";
+import { useFareEstimate } from "@/hooks/useFareEstimate";
+import { DriverProfileCard } from "@/components/DriverProfileCard";
 
 const rideSchema = z.object({
   pickup_address: z.string().trim().min(3).max(200),
@@ -25,6 +27,8 @@ interface Ride {
   dropoff_address: string;
   status: string;
   created_at: string;
+  driver_id: string | null;
+  fare_estimate: number | null;
 }
 
 export default function RiderHome() {
@@ -36,6 +40,7 @@ export default function RiderHome() {
   const [postalCodes, setPostalCodes] = useState<{ postal_code: string; area_name: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [activeRide, setActiveRide] = useState<Ride | null>(null);
+  const fare = useFareEstimate(pickup, dropoff);
 
   useEffect(() => {
     supabase.from("approved_postal_codes").select("postal_code, area_name").then(({ data }) => {
@@ -75,7 +80,7 @@ export default function RiderHome() {
       dropoff_address: dropoff,
       postal_code: postalCode,
       notes: notes || null,
-      fare_estimate: Math.round((8 + Math.random() * 18) * 100) / 100,
+      fare_estimate: fare.fare ?? null,
     });
     setSubmitting(false);
     if (error) toast.error(error.message);
