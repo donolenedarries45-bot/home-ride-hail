@@ -88,6 +88,8 @@ export default function Admin() {
       <main className="mx-auto max-w-6xl px-6 py-12">
         <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl mb-10">Admin.</h1>
 
+        <SOSAlertsPanel />
+
         <CommissionDashboard />
 
         <section className="mb-12">
