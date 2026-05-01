@@ -180,7 +180,7 @@ export default function RiderHome() {
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between gap-3 p-4 pointer-events-none">
         <Sheet>
           <SheetTrigger asChild>
-            <button className="pointer-events-auto size-12 rounded-full bg-card shadow-elevated border border-border flex items-center justify-center hover:bg-secondary transition-colors">
+            <button className="pointer-events-auto size-12 rounded-full bg-gradient-to-br from-primary to-pulse text-primary-foreground shadow-elevated border border-primary/40 flex items-center justify-center hover:opacity-90 transition-opacity">
               <Menu className="size-5" />
             </button>
           </SheetTrigger>
