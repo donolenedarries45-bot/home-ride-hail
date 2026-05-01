@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { CheckCircle2, Clock, XCircle, Upload } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Upload, FileText, X } from "lucide-react";
+import { useEffect as useEffectReact } from "react";
 
 const schema = z.object({
   full_name: z.string().trim().min(2, "Full name is required").max(100),
@@ -240,20 +241,84 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function FileField({ label, accept, file, onChange }: { label: string; accept: string; file?: File; onChange: (f: File) => void }) {
+function FileField({ label, accept, file, onChange }: { label: string; accept: string; file?: File; onChange: (f: File | undefined) => void }) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffectReact(() => {
+    if (!file) { setPreviewUrl(null); return; }
+    if (!file.type.startsWith("image/")) { setPreviewUrl(null); return; }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const isPdf = file?.type === "application/pdf";
+  const sizeKb = file ? Math.round(file.size / 1024) : 0;
+
   return (
     <div className="space-y-2">
       <Label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</Label>
-      <label className="flex items-center justify-center gap-2 h-24 rounded-xl border border-dashed border-border bg-input/50 cursor-pointer hover:bg-input transition-colors text-sm text-muted-foreground text-center px-3">
-        <Upload className="size-4 shrink-0" />
-        <span className="truncate">{file ? file.name : "Choose file"}</span>
-        <input
-          type="file"
-          accept={accept}
-          className="hidden"
-          onChange={e => { const f = e.target.files?.[0]; if (f) onChange(f); }}
-        />
-      </label>
+
+      {!file && (
+        <label className="flex items-center justify-center gap-2 h-32 rounded-xl border border-dashed border-border bg-input/50 cursor-pointer hover:bg-input transition-colors text-sm text-muted-foreground text-center px-3">
+          <Upload className="size-4 shrink-0" />
+          <span className="truncate">Choose file</span>
+          <input
+            type="file"
+            accept={accept}
+            className="hidden"
+            onChange={e => { const f = e.target.files?.[0]; if (f) onChange(f); }}
+          />
+        </label>
+      )}
+
+      {file && (
+        <div className="relative rounded-xl border border-border bg-input/50 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => onChange(undefined)}
+            className="absolute top-2 right-2 z-10 size-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
+            aria-label="Remove file"
+          >
+            <X className="size-4" />
+          </button>
+
+          {previewUrl ? (
+            <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="block">
+              <img src={previewUrl} alt={`${label} preview`} className="w-full h-40 object-cover" />
+            </a>
+          ) : isPdf ? (
+            <a
+              href={URL.createObjectURL(file)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center gap-2 h-40 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <FileText className="size-10" />
+              <span className="text-xs font-mono">Open PDF preview</span>
+            </a>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+              <FileText className="size-10" />
+            </div>
+          )}
+
+          <div className="px-3 py-2 text-xs flex items-center justify-between gap-2 border-t border-border bg-background/40">
+            <span className="truncate">{file.name}</span>
+            <span className="font-mono text-muted-foreground shrink-0">{sizeKb} KB</span>
+          </div>
+
+          <label className="block text-center text-[10px] font-mono uppercase tracking-widest text-primary hover:text-primary-glow cursor-pointer py-2 border-t border-border">
+            Replace
+            <input
+              type="file"
+              accept={accept}
+              className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) onChange(f); }}
+            />
+          </label>
+        </div>
+      )}
     </div>
   );
 }
