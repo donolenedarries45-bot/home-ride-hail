@@ -292,9 +292,20 @@ export default function RiderHome() {
                   className="w-full flex items-center gap-3 bg-secondary hover:bg-accent transition-colors p-4 rounded-2xl text-left"
                 >
                   <Navigation className="size-4 text-muted-foreground shrink-0" />
-                  <span className="text-base text-muted-foreground flex-1">Enter destination</span>
+                  <span className="text-base text-muted-foreground flex-1 truncate">
+                    {dropoff || "Enter destination"}
+                  </span>
+                  {fare.fare != null && (
+                    <span className="font-display text-lg font-medium text-primary">R{fare.fare}</span>
+                  )}
                   <ChevronUp className="size-4 text-muted-foreground" />
                 </button>
+
+                {fare.fare != null && (
+                  <p className="text-[11px] text-muted-foreground mt-2 px-1">
+                    Estimated fare · {fare.distanceKm} km · {fare.durationMin} min · cash
+                  </p>
+                )}
 
                 <div className="grid grid-cols-2 gap-3 mt-4">
                   <div className="flex items-center gap-2 p-3 rounded-2xl bg-secondary/60">
