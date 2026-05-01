@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { AppNav } from "@/components/AppNav";
+import { Logo } from "@/components/Logo";
 import { MapView } from "@/components/MapView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { MapPin, Navigation, Users, Loader2 } from "lucide-react";
+import { MapPin, Navigation, Loader2, Menu, Clock, Users, ChevronUp, X } from "lucide-react";
 import { useFareEstimate } from "@/hooks/useFareEstimate";
 import { DriverProfileCard } from "@/components/DriverProfileCard";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const rideSchema = z.object({
   pickup_address: z.string().trim().min(3).max(200),
@@ -32,7 +33,8 @@ interface Ride {
 }
 
 export default function RiderHome() {
-  const { user } = useAuth();
+  const { user, roles, signOut } = useAuth();
+  const navigate = useNavigate();
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
   const [postalCode, setPostalCode] = useState("");
@@ -41,7 +43,11 @@ export default function RiderHome() {
   const [submitting, setSubmitting] = useState(false);
   const [activeRide, setActiveRide] = useState<Ride | null>(null);
   const [driverLoc, setDriverLoc] = useState<{ lat: number; lng: number } | null>(null);
+  const [sheetExpanded, setSheetExpanded] = useState(false);
   const fare = useFareEstimate(pickup, dropoff);
+
+  const isAdmin = roles.includes("admin");
+  const isDriver = roles.includes("driver");
 
   useEffect(() => {
     supabase.from("approved_postal_codes").select("postal_code, area_name").then(({ data }) => {
@@ -70,7 +76,6 @@ export default function RiderHome() {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  // Subscribe to live driver location once a driver is assigned
   useEffect(() => {
     const driverId = activeRide?.driver_id;
     if (!driverId) { setDriverLoc(null); return; }
@@ -119,7 +124,7 @@ export default function RiderHome() {
     if (error) toast.error(error.message);
     else {
       toast.success("Ride requested — neighbors are being notified.");
-      setPickup(""); setDropoff(""); setNotes("");
+      setPickup(""); setDropoff(""); setNotes(""); setSheetExpanded(false);
     }
   };
 
@@ -130,142 +135,231 @@ export default function RiderHome() {
   };
 
   return (
-    <div className="min-h-screen">
-      <AppNav />
-      <main className="mx-auto max-w-7xl px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left: Request panel */}
-          <section className="lg:col-span-5 flex flex-col gap-6">
-            <header>
-              <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl">
-                Your neighborhood,<br />
-                <span className="text-primary italic font-medium">in motion.</span>
-              </h1>
-              <p className="mt-3 text-muted-foreground">Ride with verified neighbors you actually know.</p>
-            </header>
+    <div className="fixed inset-0 overflow-hidden bg-muted">
+      {/* Full-screen map */}
+      <div className="absolute inset-0">
+        <MapView
+          pickupAddress={activeRide?.pickup_address || pickup || "—"}
+          dropoffAddress={activeRide?.dropoff_address || dropoff}
+          liveDriver={driverLoc}
+        />
+      </div>
 
-            {activeRide ? (
-              <div className="surface rounded-3xl border border-primary/20 p-6 glow-border">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-primary">Active Ride</span>
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-pulse">{activeRide.status}</span>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="size-4 text-primary mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Pickup</p>
-                      <p className="text-sm">{activeRide.pickup_address}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Navigation className="size-4 text-pulse mt-0.5 shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Dropoff</p>
-                      <p className="text-sm">{activeRide.dropoff_address}</p>
-                    </div>
-                  </div>
-                </div>
-                {activeRide.driver_id && (
-                  <div className="mt-6">
-                    <DriverProfileCard driverId={activeRide.driver_id} />
-                  </div>
-                )}
+      {/* Top floating bar — menu + status pill */}
+      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between gap-3 p-4 pointer-events-none">
+        <Sheet>
+          <SheetTrigger asChild>
+            <button className="pointer-events-auto size-12 rounded-full bg-card shadow-elevated border border-border flex items-center justify-center hover:bg-secondary transition-colors">
+              <Menu className="size-5" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-80 bg-card">
+            <SheetHeader>
+              <SheetTitle><Logo /></SheetTitle>
+            </SheetHeader>
+            <div className="mt-8 flex flex-col gap-1">
+              <Link to="/" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Ride</Link>
+              {isDriver
+                ? <Link to="/driver" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Drive</Link>
+                : <Link to="/become-driver" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Become a driver</Link>}
+              {isAdmin && <Link to="/admin" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium text-primary">Admin</Link>}
+              <button
+                onClick={async () => { await signOut(); navigate("/auth"); }}
+                className="mt-4 px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium text-left text-muted-foreground"
+              >
+                Sign out
+              </button>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <div className="pointer-events-auto flex items-center gap-2 bg-card border border-border shadow-elevated px-4 py-2 rounded-full">
+          <div className="size-2 rounded-full bg-pulse animate-pulse" />
+          <span className="text-xs font-medium">Elsies River</span>
+        </div>
+      </div>
+
+      {/* Bottom sheet — Uber/Bolt style */}
+      <div className="absolute left-0 right-0 bottom-0 z-30">
+        {activeRide ? (
+          /* Active ride card */
+          <div className="bg-card rounded-t-3xl shadow-elevated border-t border-border p-5 pb-7 max-h-[80vh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+            <div className="mx-auto h-1.5 w-10 rounded-full bg-border mb-4" />
+
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                  {activeRide.status === "requested" ? "Finding your driver" : activeRide.status.replace("_", " ")}
+                </p>
                 {activeRide.fare_estimate != null && (
-                  <div className="mt-4 flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Estimated fare</span>
-                    <span className="font-mono text-base font-semibold text-primary">R{activeRide.fare_estimate}</span>
-                  </div>
+                  <p className="font-display text-3xl font-medium mt-1">R{activeRide.fare_estimate}</p>
                 )}
-                {activeRide.driver_id && driverLoc && (
-                  <div className="mt-4 flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-pulse">
-                    <span className="size-1.5 rounded-full bg-pulse animate-pulse" />
-                    Driver en route — tracking live
+              </div>
+              {activeRide.driver_id && driverLoc && (
+                <div className="flex items-center gap-2 text-xs font-medium text-pulse">
+                  <span className="size-2 rounded-full bg-pulse animate-pulse" />
+                  Live tracking
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3 py-4 border-y border-border">
+              <div className="flex items-start gap-3">
+                <div className="size-2.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Pickup</p>
+                  <p className="text-sm truncate">{activeRide.pickup_address}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="size-2.5 rounded-sm bg-foreground mt-1.5 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Dropoff</p>
+                  <p className="text-sm truncate">{activeRide.dropoff_address}</p>
+                </div>
+              </div>
+            </div>
+
+            {activeRide.driver_id && (
+              <div className="mt-4">
+                <DriverProfileCard driverId={activeRide.driver_id} />
+              </div>
+            )}
+
+            <Button variant="outline" onClick={cancelRide} className="mt-4 w-full h-12 rounded-2xl">
+              <X className="size-4 mr-1" /> Cancel ride
+            </Button>
+          </div>
+        ) : (
+          /* Booking sheet — collapsed/expanded */
+          <div className={`bg-card rounded-t-3xl shadow-elevated border-t border-border transition-all duration-300 ${sheetExpanded ? "max-h-[88vh]" : ""}`}>
+            <button
+              onClick={() => setSheetExpanded(!sheetExpanded)}
+              className="w-full pt-3 pb-2 flex flex-col items-center"
+            >
+              <div className="h-1.5 w-10 rounded-full bg-border" />
+            </button>
+
+            {!sheetExpanded ? (
+              /* Collapsed peek state */
+              <div className="px-5 pb-7">
+                <h2 className="font-display text-2xl font-medium mb-1">Where to?</h2>
+                <p className="text-sm text-muted-foreground mb-4">Ride with verified neighbors.</p>
+
+                <button
+                  onClick={() => setSheetExpanded(true)}
+                  className="w-full flex items-center gap-3 bg-secondary hover:bg-accent transition-colors p-4 rounded-2xl text-left"
+                >
+                  <div className="size-9 rounded-full bg-foreground/10 flex items-center justify-center">
+                    <Navigation className="size-4" />
                   </div>
-                )}
-                <Button variant="outline" onClick={cancelRide} className="mt-6 w-full border-border">Cancel ride</Button>
+                  <span className="text-base text-muted-foreground flex-1">Enter destination</span>
+                  <ChevronUp className="size-4 text-muted-foreground" />
+                </button>
+
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div className="flex items-center gap-2 p-3 rounded-2xl bg-secondary/60">
+                    <Users className="size-4 text-primary" />
+                    <div>
+                      <p className="text-xs font-semibold">12 nearby</p>
+                      <p className="text-[10px] text-muted-foreground">drivers</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 p-3 rounded-2xl bg-secondary/60">
+                    <Clock className="size-4 text-pulse" />
+                    <div>
+                      <p className="text-xs font-semibold">4-6 min</p>
+                      <p className="text-[10px] text-muted-foreground">wait time</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
-              <form onSubmit={requestRide} className="surface rounded-3xl border border-border p-6 glow-border space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Pickup Location</Label>
-                  <div className="flex items-center gap-3 bg-input p-3 rounded-xl border border-border focus-within:border-primary/50 transition-colors">
-                    <div className="size-2 rounded-full bg-primary shrink-0" />
-                    <Input value={pickup} onChange={e => setPickup(e.target.value)} placeholder="224 Oakwood Avenue" className="border-0 bg-transparent p-0 h-auto focus-visible:ring-0" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Dropoff</Label>
-                  <div className="flex items-center gap-3 bg-input p-3 rounded-xl border border-border focus-within:border-primary/50 transition-colors">
-                    <div className="size-2 rounded-full border border-muted-foreground shrink-0" />
-                    <Input value={dropoff} onChange={e => setDropoff(e.target.value)} placeholder="Where are you headed?" className="border-0 bg-transparent p-0 h-auto focus-visible:ring-0" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Neighborhood</Label>
-                  <Select value={postalCode} onValueChange={setPostalCode}>
-                    <SelectTrigger className="bg-input border-border h-12"><SelectValue placeholder="Select your area" /></SelectTrigger>
-                    <SelectContent>
-                      {postalCodes.map(p => (
-                        <SelectItem key={p.postal_code} value={p.postal_code}>{p.area_name} · {p.postal_code}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Note for driver (optional)</Label>
-                  <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Quick note..." className="bg-input border-border resize-none" rows={2} />
+              /* Expanded form state */
+              <form onSubmit={requestRide} className="px-5 pb-7 space-y-3 overflow-y-auto max-h-[78vh]">
+                <div className="flex items-center justify-between mb-1">
+                  <h2 className="font-display text-xl font-medium">Plan your ride</h2>
+                  <button type="button" onClick={() => setSheetExpanded(false)} className="size-8 rounded-full hover:bg-secondary flex items-center justify-center">
+                    <X className="size-4" />
+                  </button>
                 </div>
 
-                <div className="rounded-2xl border border-border bg-input/30 p-4 min-h-[68px] flex items-center justify-between">
-                  {fare.loading ? (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="size-4 animate-spin" /> Estimating fare…
+                <div className="bg-secondary/60 rounded-2xl p-1 space-y-1">
+                  <div className="flex items-center gap-3 px-4 py-3 bg-card rounded-xl">
+                    <div className="size-2.5 rounded-full bg-primary shrink-0" />
+                    <Input
+                      value={pickup}
+                      onChange={e => setPickup(e.target.value)}
+                      placeholder="Pickup location"
+                      className="border-0 bg-transparent p-0 h-auto focus-visible:ring-0 text-base"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 px-4 py-3 bg-card rounded-xl">
+                    <div className="size-2.5 rounded-sm bg-foreground shrink-0" />
+                    <Input
+                      value={dropoff}
+                      onChange={e => setDropoff(e.target.value)}
+                      placeholder="Where to?"
+                      className="border-0 bg-transparent p-0 h-auto focus-visible:ring-0 text-base"
+                      autoFocus
+                    />
+                  </div>
+                </div>
+
+                <Select value={postalCode} onValueChange={setPostalCode}>
+                  <SelectTrigger className="bg-secondary/60 border-0 h-12 rounded-2xl">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="size-4 text-muted-foreground" />
+                      <SelectValue placeholder="Select neighborhood" />
                     </div>
-                  ) : fare.fare != null ? (
-                    <>
-                      <div>
-                        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Estimated fare</p>
-                        <p className="font-mono text-xs text-muted-foreground">{fare.distanceKm} km · {fare.durationMin} min</p>
-                      </div>
-                      <p className="font-display text-2xl font-medium text-primary">R{fare.fare}</p>
-                    </>
-                  ) : fare.error ? (
-                    <p className="text-xs text-destructive">{fare.error}</p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Enter pickup &amp; dropoff to see your fare.</p>
-                  )}
-                </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {postalCodes.map(p => (
+                      <SelectItem key={p.postal_code} value={p.postal_code}>{p.area_name} · {p.postal_code}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-                <Button type="submit" disabled={submitting} className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary-glow font-semibold rounded-2xl">
-                  {submitting ? "Requesting..." : fare.fare ? `Request ride · R${fare.fare}` : "Request a Ride"}
+                <Textarea
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
+                  placeholder="Note for driver (optional)"
+                  className="bg-secondary/60 border-0 resize-none rounded-2xl"
+                  rows={2}
+                />
+
+                {(fare.loading || fare.fare != null || fare.error) && (
+                  <div className="rounded-2xl bg-secondary/60 p-4 flex items-center justify-between min-h-[64px]">
+                    {fare.loading ? (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="size-4 animate-spin" /> Estimating…
+                      </div>
+                    ) : fare.fare != null ? (
+                      <>
+                        <div>
+                          <p className="text-xs text-muted-foreground">{fare.distanceKm} km · {fare.durationMin} min</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-widest mt-0.5">Cash · pay driver</p>
+                        </div>
+                        <p className="font-display text-2xl font-medium">R{fare.fare}</p>
+                      </>
+                    ) : (
+                      <p className="text-xs text-destructive">{fare.error}</p>
+                    )}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full h-14 bg-foreground text-background hover:bg-foreground/90 font-semibold rounded-2xl text-base"
+                >
+                  {submitting ? "Requesting..." : fare.fare ? `Confirm · R${fare.fare}` : "Request a ride"}
                 </Button>
               </form>
             )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="surface rounded-2xl border border-border p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <Users className="size-3.5 text-primary" />
-                  <p className="text-[10px] font-mono uppercase text-muted-foreground">Available</p>
-                </div>
-                <p className="font-display text-xl font-medium">12 Neighbors</p>
-              </div>
-              <div className="surface rounded-2xl border border-border p-4">
-                <p className="text-[10px] font-mono uppercase text-muted-foreground mb-1">Wait Time</p>
-                <p className="font-display text-xl font-medium text-pulse">4-6 mins</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Right: Map */}
-          <section className="lg:col-span-7">
-            <div className="h-[640px]">
-              <MapView pickupAddress={activeRide?.pickup_address || pickup || "—"} dropoffAddress={activeRide?.dropoff_address || dropoff} liveDriver={driverLoc} />
-            </div>
-          </section>
-        </div>
-      </main>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
