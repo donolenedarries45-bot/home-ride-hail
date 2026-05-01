@@ -4,7 +4,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Logo } from "@/components/Logo";
-import logoMark from "@/assets/kyk-n-lyn-logo.png";
+
 import { MapView } from "@/components/MapView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -157,13 +157,6 @@ export default function RiderHome() {
           <div className="absolute inset-0" style={{ backgroundImage: "var(--gradient-glow)" }} />
           <div className="absolute inset-x-0 top-[14%] px-6 text-center">
             <h1 className="font-bold tracking-tight text-5xl mb-3 font-serif bg-gradient-to-r from-primary to-pulse bg-clip-text text-transparent">KYK N LYN</h1>
-            <img
-              src={logoMark}
-              alt="KYK N LYN — hands connecting communities"
-              width={480}
-              height={270}
-              className="mx-auto mb-2 w-80 h-auto object-contain"
-            />
             <p className="font-mono uppercase tracking-widest text-muted-foreground mb-6 text-lg shadow-xl">Elsies River</p>
             <h2 className="font-display font-light leading-tight tracking-tight text-2xl">
               Your neighborhood,{" "}
