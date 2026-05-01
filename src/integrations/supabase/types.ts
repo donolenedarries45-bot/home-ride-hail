@@ -42,6 +42,7 @@ export type Database = {
           id_number: string | null
           license_expiry: string | null
           license_number: string | null
+          payfast_merchant_id: string | null
           phone: string | null
           postal_code: string
           profile_photo_path: string | null
@@ -68,6 +69,7 @@ export type Database = {
           id_number?: string | null
           license_expiry?: string | null
           license_number?: string | null
+          payfast_merchant_id?: string | null
           phone?: string | null
           postal_code: string
           profile_photo_path?: string | null
@@ -94,6 +96,7 @@ export type Database = {
           id_number?: string | null
           license_expiry?: string | null
           license_number?: string | null
+          payfast_merchant_id?: string | null
           phone?: string | null
           postal_code?: string
           profile_photo_path?: string | null
@@ -175,6 +178,65 @@ export type Database = {
         }
         Relationships: []
       }
+      ride_payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          driver_id: string | null
+          driver_payfast_merchant_id: string | null
+          driver_share_cents: number
+          id: string
+          m_payment_id: string
+          paid_at: string | null
+          pf_payment_id: string | null
+          platform_share_cents: number
+          raw_itn: Json | null
+          ride_id: string
+          rider_id: string
+          status: Database["public"]["Enums"]["payment_status"]
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          driver_id?: string | null
+          driver_payfast_merchant_id?: string | null
+          driver_share_cents: number
+          id?: string
+          m_payment_id: string
+          paid_at?: string | null
+          pf_payment_id?: string | null
+          platform_share_cents: number
+          raw_itn?: Json | null
+          ride_id: string
+          rider_id: string
+          status?: Database["public"]["Enums"]["payment_status"]
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          driver_id?: string | null
+          driver_payfast_merchant_id?: string | null
+          driver_share_cents?: number
+          id?: string
+          m_payment_id?: string
+          paid_at?: string | null
+          pf_payment_id?: string | null
+          platform_share_cents?: number
+          raw_itn?: Json | null
+          ride_id?: string
+          rider_id?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_payments_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rides: {
         Row: {
           accepted_at: string | null
@@ -185,6 +247,7 @@ export type Database = {
           fare_estimate: number | null
           id: string
           notes: string | null
+          payment_status: Database["public"]["Enums"]["payment_status"]
           pickup_address: string
           postal_code: string
           rider_id: string
@@ -199,6 +262,7 @@ export type Database = {
           fare_estimate?: number | null
           id?: string
           notes?: string | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
           pickup_address: string
           postal_code: string
           rider_id: string
@@ -213,6 +277,7 @@ export type Database = {
           fare_estimate?: number | null
           id?: string
           notes?: string | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
           pickup_address?: string
           postal_code?: string
           rider_id?: string
@@ -257,6 +322,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "driver" | "rider"
       application_status: "pending" | "approved" | "rejected"
+      payment_status: "pending" | "paid" | "failed" | "cancelled"
       ride_status:
         | "requested"
         | "accepted"
@@ -392,6 +458,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "driver", "rider"],
       application_status: ["pending", "approved", "rejected"],
+      payment_status: ["pending", "paid", "failed", "cancelled"],
       ride_status: [
         "requested",
         "accepted",
