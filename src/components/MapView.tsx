@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
+import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import { supabase } from "@/integrations/supabase/client";
 
 // Elsies River, Cape Town, South Africa
@@ -49,11 +49,13 @@ export function MapView({ pickupAddress, dropoffAddress }: Props) {
       try {
         const { data, error: fnErr } = await supabase.functions.invoke("get-maps-key");
         if (fnErr || !data?.key) throw new Error("Could not load map key");
-        const loader = new Loader({ apiKey: data.key, version: "weekly" });
-        await loader.importLibrary("maps");
-        await loader.importLibrary("marker");
-        await loader.importLibrary("routes");
-        await loader.importLibrary("geocoding");
+        setOptions({ key: data.key, v: "weekly" });
+        await Promise.all([
+          importLibrary("maps"),
+          importLibrary("marker"),
+          importLibrary("routes"),
+          importLibrary("geocoding"),
+        ]);
         if (cancelled || !containerRef.current) return;
 
         const map = new google.maps.Map(containerRef.current, {
