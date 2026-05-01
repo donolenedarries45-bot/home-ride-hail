@@ -220,6 +220,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          phone: string | null
           postal_code: string | null
           updated_at: string
         }
@@ -228,6 +229,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          phone?: string | null
           postal_code?: string | null
           updated_at?: string
         }
@@ -236,6 +238,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          phone?: string | null
           postal_code?: string | null
           updated_at?: string
         }
