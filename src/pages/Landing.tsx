@@ -28,7 +28,7 @@ export default function Landing() {
               <span className="text-primary italic font-medium text-glow">in motion.</span>
             </h1>
             <p className="mt-6 text-lg text-muted-foreground max-w-lg">
-              Lantern is ride-sharing rebuilt for the block. Only verified neighbors from your zip code can drive — vetted by code, then by humans.
+              Kyk n Lyn is ride-sharing rebuilt for the block. Only verified neighbors from your zip code can drive — vetted by code, then by humans.
             </p>
             <div className="mt-10 flex gap-4">
               <Link to="/auth"><Button className="h-14 px-8 bg-primary text-primary-foreground hover:bg-primary-glow font-semibold text-base rounded-2xl glow-amber">Request a ride</Button></Link>
