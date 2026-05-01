@@ -156,7 +156,7 @@ export default function RiderHome() {
         <div className="absolute inset-0 bg-background">
           <div className="absolute inset-0" style={{ backgroundImage: "var(--gradient-glow)" }} />
           <div className="absolute inset-x-0 top-[14%] px-6 text-center">
-            <h1 className="font-bold tracking-tight text-5xl text-primary mb-3 font-serif">KYK N LYN</h1>
+            <h1 className="font-bold tracking-tight text-5xl mb-3 font-serif bg-gradient-to-r from-primary to-pulse bg-clip-text text-transparent">KYK N LYN</h1>
             <img
               src={logoMark}
               alt="KYK N LYN — hands connecting communities"
