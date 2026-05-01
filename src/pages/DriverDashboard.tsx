@@ -48,12 +48,59 @@ export default function DriverDashboard() {
   useEffect(() => {
     load();
     if (!user) return;
+
+    // Ask browser notification permission once
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+
+    const playPing = () => {
+      try {
+        const Ctx = (window.AudioContext || (window as any).webkitAudioContext);
+        if (!Ctx) return;
+        const ctx = new Ctx();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(880, ctx.currentTime);
+        o.frequency.setValueAtTime(1320, ctx.currentTime + 0.15);
+        g.gain.setValueAtTime(0.0001, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4);
+        o.connect(g).connect(ctx.destination);
+        o.start();
+        o.stop(ctx.currentTime + 0.42);
+      } catch {}
+    };
+
     const channel = supabase
       .channel("driver-rides")
       .on("postgres_changes", { event: "*", schema: "public", table: "rides" }, load)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "rides", filter: "status=eq.requested" },
+        (payload) => {
+          const r = payload.new as Ride;
+          // Don't notify if driver is already on a ride
+          if (myRide) return;
+          playPing();
+          toast.success("New ride request", {
+            description: `${r.pickup_address} → ${r.dropoff_address}${r.fare_estimate ? ` · R${r.fare_estimate}` : ""}`,
+            duration: 8000,
+          });
+          if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+            try {
+              new Notification("New ride request", {
+                body: `${r.pickup_address} → ${r.dropoff_address}`,
+                tag: r.id,
+              });
+            } catch {}
+          }
+        }
+      )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  }, [user, myRide]);
 
   const accept = async (ride: Ride) => {
     const { error } = await supabase.from("rides")
