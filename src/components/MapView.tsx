@@ -31,14 +31,17 @@ const MAP_STYLE: google.maps.MapTypeStyle[] = [
 interface Props {
   pickupAddress?: string;
   dropoffAddress?: string;
+  liveDriver?: { lat: number; lng: number } | null;
 }
 
-export function MapView({ pickupAddress, dropoffAddress }: Props) {
+export function MapView({ pickupAddress, dropoffAddress, liveDriver }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
   const driverMarkersRef = useRef<google.maps.Marker[]>([]);
   const pickupMarkerRef = useRef<google.maps.Marker | null>(null);
+  const liveDriverMarkerRef = useRef<google.maps.Marker | null>(null);
+  const liveRouteRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
