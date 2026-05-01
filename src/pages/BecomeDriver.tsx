@@ -243,7 +243,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function FileField({ label, accept, file, onChange }: { label: string; accept: string; file?: File; onChange: (f: File | undefined) => void }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  useEffectReact(() => {
+  useEffect(() => {
     if (!file) { setPreviewUrl(null); return; }
     if (!file.type.startsWith("image/")) { setPreviewUrl(null); return; }
     const url = URL.createObjectURL(file);
