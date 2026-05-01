@@ -164,7 +164,7 @@ export default function RiderHome() {
               height={270}
               className="mx-auto mb-2 w-80 h-auto object-contain"
             />
-            <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-6">Elsies River</p>
+            <p className="font-mono uppercase tracking-widest text-muted-foreground mb-6 text-lg shadow-xl">Elsies River</p>
             <h2 className="font-display font-light leading-tight tracking-tight text-2xl">
               Your neighborhood,{" "}
               <span className="text-primary italic font-medium">in motion.</span>
