@@ -291,9 +291,7 @@ export default function RiderHome() {
                   onClick={() => setSheetExpanded(true)}
                   className="w-full flex items-center gap-3 bg-secondary hover:bg-accent transition-colors p-4 rounded-2xl text-left"
                 >
-                  <div className="size-9 rounded-full bg-foreground/10 flex items-center justify-center">
-                    <Navigation className="size-4" />
-                  </div>
+                  <Navigation className="size-4 text-muted-foreground shrink-0" />
                   <span className="text-base text-muted-foreground flex-1">Enter destination</span>
                   <ChevronUp className="size-4 text-muted-foreground" />
                 </button>
