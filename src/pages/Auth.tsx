@@ -10,10 +10,18 @@ import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
 
+const ELSIES_RIVER_POSTAL = "7490";
+
 const credSchema = z.object({
   email: z.string().trim().email().max(255),
   password: z.string().min(6).max(128),
-  fullName: z.string().trim().min(1).max(100).optional(),
+  fullName: z.string().trim().min(1, "Full name is required").max(100).optional(),
+  postalCode: z
+    .string()
+    .trim()
+    .regex(/^\d{4}$/, "Postal code must be 4 digits")
+    .refine((v) => v === ELSIES_RIVER_POSTAL, "Sign-ups are limited to Elsies River (7490)")
+    .optional(),
 });
 
 export default function Auth() {
@@ -21,6 +29,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [postalCode, setPostalCode] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -29,7 +38,12 @@ export default function Auth() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = credSchema.safeParse({ email, password, fullName: mode === "signup" ? fullName : undefined });
+    const parsed = credSchema.safeParse({
+      email,
+      password,
+      fullName: mode === "signup" ? fullName : undefined,
+      postalCode: mode === "signup" ? postalCode : undefined,
+    });
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
       return;
@@ -42,7 +56,7 @@ export default function Auth() {
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { full_name: fullName },
+            data: { full_name: fullName, postal_code: postalCode },
           },
         });
         if (error) throw error;
@@ -78,10 +92,24 @@ export default function Auth() {
 
           <form onSubmit={submit} className="space-y-4">
             {mode === "signup" && (
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-xs uppercase tracking-widest text-muted-foreground font-mono">Full name</Label>
-                <Input id="name" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Jane Doe" />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-xs uppercase tracking-widest text-muted-foreground font-mono">Full name</Label>
+                  <Input id="name" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Jane Doe" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="postal" className="text-xs uppercase tracking-widest text-muted-foreground font-mono">Postal code</Label>
+                  <Input
+                    id="postal"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={postalCode}
+                    onChange={e => setPostalCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="7490"
+                  />
+                  <p className="text-xs text-muted-foreground">Currently open to Elsies River residents only (7490).</p>
+                </div>
+              </>
             )}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-xs uppercase tracking-widest text-muted-foreground font-mono">Email</Label>
