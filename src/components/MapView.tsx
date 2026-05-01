@@ -49,8 +49,11 @@ export function MapView({ pickupAddress, dropoffAddress }: Props) {
       try {
         const { data, error: fnErr } = await supabase.functions.invoke("get-maps-key");
         if (fnErr || !data?.key) throw new Error("Could not load map key");
-        const loader = new Loader({ apiKey: data.key, version: "weekly", libraries: ["places", "routes"] });
-        const google = await loader.load();
+        const loader = new Loader({ apiKey: data.key, version: "weekly" });
+        await loader.importLibrary("maps");
+        await loader.importLibrary("marker");
+        await loader.importLibrary("routes");
+        await loader.importLibrary("geocoding");
         if (cancelled || !containerRef.current) return;
 
         const map = new google.maps.Map(containerRef.current, {
