@@ -8,61 +8,61 @@
 
 @layer base {
   :root {
-    /* Warm canvas background — like sun-bleached paper */
-    --background: 36 60% 97%;             /* #FDF9F3 canvas */
-    --foreground: 222 30% 6%;             /* #0B0E14 deep indigo */
-    --surface: 36 50% 96%;
-    --surface-elevated: 0 0% 100%;
+    /* Deep indigo night canvas */
+    --background: 222 40% 7%;             /* #0B0F1C deep indigo */
+    --foreground: 36 60% 97%;             /* warm cream text */
+    --surface: 222 35% 10%;
+    --surface-elevated: 222 32% 13%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 30% 6%;
+    --card: 222 32% 11%;
+    --card-foreground: 36 60% 97%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 30% 6%;
+    --popover: 222 32% 11%;
+    --popover-foreground: 36 60% 97%;
 
     /* Sunset orange — primary brand (energetic, expressive) */
-    --primary: 17 100% 56%;               /* #FF5A1F sunset */
-    --primary-foreground: 36 60% 97%;
-    --primary-glow: 17 100% 65%;
+    --primary: 17 100% 60%;               /* #FF6A2E sunset */
+    --primary-foreground: 222 40% 7%;
+    --primary-glow: 17 100% 68%;
 
     /* Ochre — secondary accent (warm gold) */
-    --pulse: 42 100% 50%;                 /* #FFB300 ochre */
-    --pulse-foreground: 222 30% 6%;
+    --pulse: 42 100% 55%;                 /* ochre */
+    --pulse-foreground: 222 40% 7%;
 
-    --secondary: 36 40% 92%;
-    --secondary-foreground: 222 30% 6%;
+    --secondary: 222 28% 15%;
+    --secondary-foreground: 36 60% 97%;
 
-    --muted: 36 30% 90%;
-    --muted-foreground: 222 15% 38%;
+    --muted: 222 25% 17%;
+    --muted-foreground: 36 20% 70%;
 
-    --accent: 36 50% 88%;
-    --accent-foreground: 222 30% 6%;
+    --accent: 222 30% 18%;
+    --accent-foreground: 36 60% 97%;
 
-    --destructive: 0 78% 52%;
+    --destructive: 0 78% 55%;
     --destructive-foreground: 36 60% 97%;
 
-    --border: 222 15% 88%;
-    --input: 36 40% 93%;
-    --ring: 17 100% 56%;
+    --border: 222 25% 20%;
+    --input: 222 28% 15%;
+    --ring: 17 100% 60%;
 
     --radius: 0.75rem;
 
     /* Gradients & shadows — bold & confident */
     --gradient-glow: radial-gradient(ellipse at top right, hsl(17 100% 65% / 0.18), transparent 60%);
-    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%), hsl(36 50% 97%));
-    --shadow-glow: 0 12px 40px -12px hsl(17 100% 56% / 0.45);
-    --shadow-pulse: 0 8px 24px -8px hsl(42 100% 50% / 0.45);
-    --shadow-elevated: 16px 16px 0 0 hsl(42 100% 50%);
+    --gradient-surface: linear-gradient(180deg, hsl(222 32% 11%), hsl(222 35% 9%));
+    --shadow-glow: 0 12px 40px -12px hsl(17 100% 60% / 0.55);
+    --shadow-pulse: 0 8px 24px -8px hsl(42 100% 55% / 0.45);
+    --shadow-elevated: 16px 16px 0 0 hsl(42 100% 55%);
 
     /* Sidebar */
-    --sidebar-background: 36 50% 96%;
-    --sidebar-foreground: 222 30% 6%;
-    --sidebar-primary: 17 100% 56%;
-    --sidebar-primary-foreground: 36 60% 97%;
-    --sidebar-accent: 36 40% 92%;
-    --sidebar-accent-foreground: 222 30% 6%;
-    --sidebar-border: 222 15% 88%;
-    --sidebar-ring: 17 100% 56%;
+    --sidebar-background: 222 35% 9%;
+    --sidebar-foreground: 36 60% 97%;
+    --sidebar-primary: 17 100% 60%;
+    --sidebar-primary-foreground: 222 40% 7%;
+    --sidebar-accent: 222 28% 15%;
+    --sidebar-accent-foreground: 36 60% 97%;
+    --sidebar-border: 222 25% 20%;
+    --sidebar-ring: 17 100% 60%;
   }
 }
 
