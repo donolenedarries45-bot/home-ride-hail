@@ -19,6 +19,10 @@ const baseCreds = {
   email: z.string().trim().email().max(255),
   password: z.string().min(6, "Password must be at least 6 characters").max(128),
   fullName: z.string().trim().min(1, "Full name is required").max(100),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^(\+27|0)[6-8][0-9]{8}$/, "Enter a valid SA mobile number (e.g. 0821234567 or +27821234567)"),
   postalCode: z
     .string()
     .trim()
