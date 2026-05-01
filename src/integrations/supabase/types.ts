@@ -121,6 +121,33 @@ export type Database = {
           },
         ]
       }
+      driver_locations: {
+        Row: {
+          driver_id: string
+          heading: number | null
+          latitude: number
+          longitude: number
+          ride_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          driver_id: string
+          heading?: number | null
+          latitude: number
+          longitude: number
+          ride_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          driver_id?: string
+          heading?: number | null
+          latitude?: number
+          longitude?: number
+          ride_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
