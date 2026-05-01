@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { CheckCircle2, Clock, XCircle, Upload, FileText, X } from "lucide-react";
-import { useEffect as useEffectReact } from "react";
 
 const schema = z.object({
   full_name: z.string().trim().min(2, "Full name is required").max(100),
