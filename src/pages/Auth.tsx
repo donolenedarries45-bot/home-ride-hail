@@ -34,7 +34,6 @@ const riderSchema = z.object(baseCreds);
 
 const driverSchema = z.object({
   ...baseCreds,
-  phone: z.string().trim().min(7, "Phone number is required").max(20),
   id_number: z.string().trim().min(5, "ID / passport number is required").max(30),
   address: z.string().trim().min(5, "Home address is required").max(200),
   license_number: z.string().trim().min(3, "License number is required").max(30),
@@ -147,7 +146,7 @@ function SignUpTabs() {
 }
 
 function RiderSignUp() {
-  const [form, setForm] = useState({ email: "", password: "", fullName: "", postalCode: "" });
+  const [form, setForm] = useState({ email: "", password: "", fullName: "", phone: "", postalCode: "" });
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -160,7 +159,7 @@ function RiderSignUp() {
       password: form.password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { full_name: form.fullName, postal_code: form.postalCode },
+        data: { full_name: form.fullName, postal_code: form.postalCode, phone: form.phone },
       },
     });
     setLoading(false);
@@ -175,6 +174,7 @@ function RiderSignUp() {
       <form onSubmit={submit} className="space-y-4">
         <FieldRow label="Full name"><Input value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} placeholder="Jane Doe" /></FieldRow>
         <FieldRow label="Email"><Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="you@neighborhood.com" /></FieldRow>
+        <FieldRow label="Mobile number"><Input type="tel" inputMode="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="0821234567" /></FieldRow>
         <FieldRow label="Password"><Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="••••••••" /></FieldRow>
         <FieldRow label="Postal code">
           <Input
