@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS on_application_approved ON public.driver_applications;
