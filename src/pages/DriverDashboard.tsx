@@ -9,6 +9,7 @@ import { useBroadcastLocation } from "@/hooks/useBroadcastLocation";
 import { DriverWallet } from "@/components/DriverWallet";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
 import { SOSButton } from "@/components/SOSButton";
+import { MapView } from "@/components/MapView";
 
 interface Ride {
   id: string;
