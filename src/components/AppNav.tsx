@@ -22,7 +22,7 @@ export function AppNav() {
                 <Link to="/driver" className="px-2 md:px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Drive</Link>
               )}
               {!isDriver && (
-                <Link to="/become-driver" className="px-2 md:px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Drive</Link>
+                <Link to="/become-driver" className="px-2 md:px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Become a driver</Link>
               )}
               {isAdmin && (
                 <Link to="/admin" className="px-3 py-1.5 text-primary hover:text-primary-glow transition-colors font-medium">Admin</Link>
