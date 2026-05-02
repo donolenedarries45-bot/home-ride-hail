@@ -47,6 +47,11 @@ export default function RiderHome() {
   const [driverLoc, setDriverLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [sheetExpanded, setSheetExpanded] = useState(false);
   const fare = useFareEstimate(pickup, dropoff);
+  const [needsDriverApp, setNeedsDriverApp] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("driver-app-banner-dismissed") === "1";
+  });
 
   const isAdmin = roles.includes("admin");
   const isDriver = roles.includes("driver");
@@ -56,6 +61,16 @@ export default function RiderHome() {
       setPostalCodes(data ?? []);
     });
   }, []);
+
+  useEffect(() => {
+    if (!user || isDriver) { setNeedsDriverApp(false); return; }
+    supabase
+      .from("driver_applications")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setNeedsDriverApp(!data));
+  }, [user, isDriver]);
 
   useEffect(() => {
     if (!user) return;
@@ -185,7 +200,7 @@ export default function RiderHome() {
               <Link to="/" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Ride</Link>
               {isDriver
                 ? <Link to="/driver" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Drive</Link>
-                : <Link to="/become-driver" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Become a driver</Link>}
+                : <Link to="/become-driver" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Finish driver application</Link>}
               {isAdmin && <Link to="/admin" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium text-primary">Admin</Link>}
               <button
                 onClick={async () => { await signOut(); navigate("/auth"); }}
@@ -206,6 +221,27 @@ export default function RiderHome() {
           <span className="text-xs font-medium">Elsies River</span>
         </div>
       </div>
+
+      {/* Driver application reminder banner */}
+      {needsDriverApp && !bannerDismissed && !activeRide && (
+        <div className="absolute top-20 left-0 right-0 z-20 px-4 pointer-events-none animate-in fade-in slide-in-from-top duration-500">
+          <div className="pointer-events-auto mx-auto max-w-md surface rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/10 to-pulse/10 backdrop-blur-xl shadow-elevated p-4 flex items-start gap-3">
+            <div className="shrink-0 size-9 rounded-xl bg-gradient-to-br from-primary to-pulse text-primary-foreground flex items-center justify-center font-mono text-xs font-bold">!</div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold leading-tight">Finish your driver application</p>
+              <p className="text-xs text-muted-foreground mt-1 leading-snug">Submit your license, vehicle, and documents so an admin can approve you.</p>
+              <Link to="/become-driver" className="inline-block mt-2 text-xs font-mono uppercase tracking-widest text-primary hover:text-primary-glow">Continue →</Link>
+            </div>
+            <button
+              onClick={() => { localStorage.setItem("driver-app-banner-dismissed", "1"); setBannerDismissed(true); }}
+              className="shrink-0 size-7 rounded-full hover:bg-background/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Dismiss"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Bottom sheet — Uber/Bolt style */}
       <div className="absolute left-0 right-0 bottom-0 z-30">
