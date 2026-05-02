@@ -237,15 +237,6 @@ function FieldRow({ label, children }: { label: string; children: React.ReactNod
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-4">
-      <h3 className="text-xs font-mono uppercase tracking-widest text-primary">{title}</h3>
-      <div className="space-y-4">{children}</div>
-    </div>
-  );
-}
-
 function Divider() {
   return (
     <div className="my-6 flex items-center gap-3">
