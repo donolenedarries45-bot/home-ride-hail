@@ -166,6 +166,26 @@ export default function DriverDashboard() {
               <span className="text-[10px] font-mono uppercase tracking-widest text-primary">Your active ride</span>
               <span className="px-2 py-0.5 rounded-md bg-pulse/10 text-pulse text-[10px] font-mono uppercase">{myRide.status}</span>
             </div>
+
+            {/* Live map: shows the rider's location while the ride is in progress */}
+            <div className="mb-6 h-72 rounded-2xl overflow-hidden border border-border">
+              <MapView
+                pickupAddress={myRide.pickup_address}
+                dropoffAddress={myRide.dropoff_address}
+                liveDriver={riderLoc}
+              />
+            </div>
+            {riderLoc ? (
+              <p className="text-[11px] font-mono uppercase tracking-widest text-pulse mb-4 flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-pulse animate-pulse" />
+                Rider location · live
+              </p>
+            ) : (
+              <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground mb-4">
+                Waiting for rider location…
+              </p>
+            )}
+
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <Detail icon={MapPin} label="Pickup" value={myRide.pickup_address} accent="primary" />
               <Detail icon={Navigation} label="Dropoff" value={myRide.dropoff_address} accent="pulse" />
