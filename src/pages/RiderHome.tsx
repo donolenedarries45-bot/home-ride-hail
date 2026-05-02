@@ -211,6 +211,7 @@ export default function RiderHome() {
                 ? <Link to="/driver" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Drive</Link>
                 : <Link to="/become-driver" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Finish driver application</Link>}
               {isAdmin && <Link to="/admin" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium text-primary">Admin</Link>}
+              <Link to="/feedback" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">💬 Send feedback</Link>
               <button
                 onClick={async () => { await signOut(); navigate("/auth"); }}
                 className="mt-4 px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium text-left text-muted-foreground"
