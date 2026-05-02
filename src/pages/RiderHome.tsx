@@ -47,6 +47,11 @@ export default function RiderHome() {
   const [driverLoc, setDriverLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [sheetExpanded, setSheetExpanded] = useState(false);
   const fare = useFareEstimate(pickup, dropoff);
+  const [needsDriverApp, setNeedsDriverApp] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("driver-app-banner-dismissed") === "1";
+  });
 
   const isAdmin = roles.includes("admin");
   const isDriver = roles.includes("driver");
@@ -56,6 +61,16 @@ export default function RiderHome() {
       setPostalCodes(data ?? []);
     });
   }, []);
+
+  useEffect(() => {
+    if (!user || isDriver) { setNeedsDriverApp(false); return; }
+    supabase
+      .from("driver_applications")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setNeedsDriverApp(!data));
+  }, [user, isDriver]);
 
   useEffect(() => {
     if (!user) return;
