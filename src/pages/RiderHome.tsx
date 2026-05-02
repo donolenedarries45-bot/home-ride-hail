@@ -16,6 +16,7 @@ import { useFareEstimate } from "@/hooks/useFareEstimate";
 import { DriverProfileCard } from "@/components/DriverProfileCard";
 import { SOSButton } from "@/components/SOSButton";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useBroadcastLocation } from "@/hooks/useBroadcastLocation";
 
 const rideSchema = z.object({
   pickup_address: z.string().trim().min(3).max(200),
@@ -55,6 +56,14 @@ export default function RiderHome() {
 
   const isAdmin = roles.includes("admin");
   const isDriver = roles.includes("driver");
+
+  // Rider broadcasts their own live location while a ride is active so the driver can see them.
+  useBroadcastLocation(
+    user?.id,
+    activeRide?.id,
+    !!activeRide && (activeRide.status === "accepted" || activeRide.status === "in_progress"),
+    "rider"
+  );
 
   useEffect(() => {
     supabase.from("approved_postal_codes").select("postal_code, area_name").then(({ data }) => {

@@ -9,6 +9,7 @@ import { useBroadcastLocation } from "@/hooks/useBroadcastLocation";
 import { DriverWallet } from "@/components/DriverWallet";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
 import { SOSButton } from "@/components/SOSButton";
+import { MapView } from "@/components/MapView";
 
 interface Ride {
   id: string;
@@ -28,12 +29,45 @@ export default function DriverDashboard() {
   const [openRides, setOpenRides] = useState<Ride[]>([]);
   const [myRide, setMyRide] = useState<Ride | null>(null);
   const [completeOpen, setCompleteOpen] = useState(false);
+  const [riderLoc, setRiderLoc] = useState<{ lat: number; lng: number } | null>(null);
 
   useBroadcastLocation(
     user?.id,
     myRide?.id,
-    !!myRide && (myRide.status === "accepted" || myRide.status === "in_progress")
+    !!myRide && (myRide.status === "accepted" || myRide.status === "in_progress"),
+    "driver"
   );
+
+  // Subscribe to the rider's live location for the active ride.
+  useEffect(() => {
+    const riderId = myRide?.rider_id;
+    if (!riderId) { setRiderLoc(null); return; }
+
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("rider_locations")
+        .select("latitude, longitude")
+        .eq("rider_id", riderId)
+        .maybeSingle();
+      if (!cancelled && data) setRiderLoc({ lat: data.latitude, lng: data.longitude });
+    })();
+
+    const channel = supabase
+      .channel(`rider-loc-${riderId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "rider_locations", filter: `rider_id=eq.${riderId}` },
+        (payload: any) => {
+          const row = payload.new;
+          if (row?.latitude != null && row?.longitude != null) {
+            setRiderLoc({ lat: row.latitude, lng: row.longitude });
+          }
+        }
+      )
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [myRide?.rider_id]);
 
   const load = async () => {
     if (!user) return;
@@ -132,6 +166,26 @@ export default function DriverDashboard() {
               <span className="text-[10px] font-mono uppercase tracking-widest text-primary">Your active ride</span>
               <span className="px-2 py-0.5 rounded-md bg-pulse/10 text-pulse text-[10px] font-mono uppercase">{myRide.status}</span>
             </div>
+
+            {/* Live map: shows the rider's location while the ride is in progress */}
+            <div className="mb-6 h-72 rounded-2xl overflow-hidden border border-border">
+              <MapView
+                pickupAddress={myRide.pickup_address}
+                dropoffAddress={myRide.dropoff_address}
+                liveDriver={riderLoc}
+              />
+            </div>
+            {riderLoc ? (
+              <p className="text-[11px] font-mono uppercase tracking-widest text-pulse mb-4 flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-pulse animate-pulse" />
+                Rider location · live
+              </p>
+            ) : (
+              <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground mb-4">
+                Waiting for rider location…
+              </p>
+            )}
+
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <Detail icon={MapPin} label="Pickup" value={myRide.pickup_address} accent="primary" />
               <Detail icon={Navigation} label="Dropoff" value={myRide.dropoff_address} accent="pulse" />

@@ -390,6 +390,33 @@ export type Database = {
           },
         ]
       }
+      rider_locations: {
+        Row: {
+          heading: number | null
+          latitude: number
+          longitude: number
+          ride_id: string | null
+          rider_id: string
+          updated_at: string
+        }
+        Insert: {
+          heading?: number | null
+          latitude: number
+          longitude: number
+          ride_id?: string | null
+          rider_id: string
+          updated_at?: string
+        }
+        Update: {
+          heading?: number | null
+          latitude?: number
+          longitude?: number
+          ride_id?: string | null
+          rider_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       rides: {
         Row: {
           accepted_at: string | null
