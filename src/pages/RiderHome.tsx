@@ -16,6 +16,7 @@ import { useFareEstimate } from "@/hooks/useFareEstimate";
 import { DriverProfileCard } from "@/components/DriverProfileCard";
 import { SOSButton } from "@/components/SOSButton";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useBroadcastLocation } from "@/hooks/useBroadcastLocation";
 
 const rideSchema = z.object({
   pickup_address: z.string().trim().min(3).max(200),
