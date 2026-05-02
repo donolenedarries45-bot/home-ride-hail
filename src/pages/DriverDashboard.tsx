@@ -29,12 +29,45 @@ export default function DriverDashboard() {
   const [openRides, setOpenRides] = useState<Ride[]>([]);
   const [myRide, setMyRide] = useState<Ride | null>(null);
   const [completeOpen, setCompleteOpen] = useState(false);
+  const [riderLoc, setRiderLoc] = useState<{ lat: number; lng: number } | null>(null);
 
   useBroadcastLocation(
     user?.id,
     myRide?.id,
-    !!myRide && (myRide.status === "accepted" || myRide.status === "in_progress")
+    !!myRide && (myRide.status === "accepted" || myRide.status === "in_progress"),
+    "driver"
   );
+
+  // Subscribe to the rider's live location for the active ride.
+  useEffect(() => {
+    const riderId = myRide?.rider_id;
+    if (!riderId) { setRiderLoc(null); return; }
+
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("rider_locations")
+        .select("latitude, longitude")
+        .eq("rider_id", riderId)
+        .maybeSingle();
+      if (!cancelled && data) setRiderLoc({ lat: data.latitude, lng: data.longitude });
+    })();
+
+    const channel = supabase
+      .channel(`rider-loc-${riderId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "rider_locations", filter: `rider_id=eq.${riderId}` },
+        (payload: any) => {
+          const row = payload.new;
+          if (row?.latitude != null && row?.longitude != null) {
+            setRiderLoc({ lat: row.latitude, lng: row.longitude });
+          }
+        }
+      )
+      .subscribe();
+    return () => { cancelled = true; supabase.removeChannel(channel); };
+  }, [myRide?.rider_id]);
 
   const load = async () => {
     if (!user) return;
