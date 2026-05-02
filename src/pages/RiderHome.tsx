@@ -57,6 +57,14 @@ export default function RiderHome() {
   const isAdmin = roles.includes("admin");
   const isDriver = roles.includes("driver");
 
+  // Rider broadcasts their own live location while a ride is active so the driver can see them.
+  useBroadcastLocation(
+    user?.id,
+    activeRide?.id,
+    !!activeRide && (activeRide.status === "accepted" || activeRide.status === "in_progress"),
+    "rider"
+  );
+
   useEffect(() => {
     supabase.from("approved_postal_codes").select("postal_code, area_name").then(({ data }) => {
       setPostalCodes(data ?? []);
