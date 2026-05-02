@@ -65,6 +65,45 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_feedback: {
+        Row: {
+          admin_response: string | null
+          category: string
+          created_at: string
+          id: string
+          message: string
+          rating: number | null
+          responded_at: string | null
+          ride_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_response?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          message: string
+          rating?: number | null
+          responded_at?: string | null
+          ride_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_response?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          rating?: number | null
+          responded_at?: string | null
+          ride_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       driver_applications: {
         Row: {
           address: string
