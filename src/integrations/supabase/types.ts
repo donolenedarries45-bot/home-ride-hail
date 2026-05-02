@@ -474,13 +474,6 @@ export type Database = {
         Returns: boolean
       }
       ensure_driver_wallet: { Args: { _driver_id: string }; Returns: undefined }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
     }
     Enums: {
       app_role: "admin" | "driver" | "rider"
