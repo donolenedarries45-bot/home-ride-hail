@@ -7,11 +7,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
-import { Upload, X, FileText } from "lucide-react";
 
 const ELSIES_RIVER_POSTAL = "7490";
 
@@ -32,20 +30,7 @@ const baseCreds = {
 
 const riderSchema = z.object(baseCreds);
 
-const driverSchema = z.object({
-  ...baseCreds,
-  id_number: z.string().trim().min(5, "ID / passport number is required").max(30),
-  address: z.string().trim().min(5, "Home address is required").max(200),
-  license_number: z.string().trim().min(3, "License number is required").max(30),
-  license_expiry: z.string().min(1, "License expiry is required"),
-  years_driving: z.coerce.number().int().min(0).max(80),
-  vehicle_make_model: z.string().trim().min(2, "Vehicle make/model is required").max(80),
-  vehicle_plate: z.string().trim().min(2, "License plate is required").max(20),
-  vehicle_year: z.coerce.number().int().min(1980).max(new Date().getFullYear() + 1),
-  vehicle_color: z.string().trim().min(2, "Vehicle color is required").max(30),
-  vehicle_seats: z.coerce.number().int().min(1).max(20),
-  bio: z.string().trim().max(400).optional(),
-});
+const driverAccountSchema = z.object(baseCreds);
 
 const signInSchema = z.object({
   email: z.string().trim().email().max(255),
@@ -194,142 +179,49 @@ function RiderSignUp() {
 }
 
 function DriverSignUp() {
-  const [form, setForm] = useState({
-    email: "", password: "", fullName: "", postalCode: "",
-    phone: "", id_number: "", address: "",
-    license_number: "", license_expiry: "", years_driving: "",
-    vehicle_make_model: "", vehicle_plate: "", vehicle_year: "", vehicle_color: "", vehicle_seats: "",
-    bio: "",
-  });
-  const [files, setFiles] = useState<{ profile?: File; vehicle?: File; address?: File }>({});
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ email: "", password: "", fullName: "", phone: "", postalCode: "" });
   const [loading, setLoading] = useState(false);
-
-  const uploadFile = async (userId: string, file: File, kind: string): Promise<string> => {
-    const ext = file.name.split(".").pop() ?? "bin";
-    const path = `${userId}/${kind}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("driver-documents").upload(path, file, { upsert: true });
-    if (error) throw error;
-    return path;
-  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = driverSchema.safeParse(form);
+    const parsed = driverAccountSchema.safeParse(form);
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
-    if (!files.profile) { toast.error("Please upload a profile photo"); return; }
-    if (!files.vehicle) { toast.error("Please upload a vehicle photo"); return; }
-    if (!files.address) { toast.error("Please upload proof of address"); return; }
-
     setLoading(true);
-    try {
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          emailRedirectTo: window.location.origin,
-          data: { full_name: form.fullName, postal_code: form.postalCode, phone: form.phone },
-        },
-      });
-      if (signUpError) throw signUpError;
-
-      // If email confirmation is required, there's no session yet — uploads/inserts need auth
-      if (!signUpData.session) {
-        toast.success("Account created! Confirm your email, then sign in to finish your driver application.");
-        return;
-      }
-
-      const userId = signUpData.user!.id;
-      const [profilePath, vehiclePath, addressPath] = await Promise.all([
-        uploadFile(userId, files.profile, "profile"),
-        uploadFile(userId, files.vehicle, "vehicle"),
-        uploadFile(userId, files.address, "address"),
-      ]);
-
-      const { error: appError } = await supabase.from("driver_applications").insert({
-        user_id: userId,
-        full_name: parsed.data.fullName,
-        postal_code: parsed.data.postalCode,
-        address: parsed.data.address,
-        phone: parsed.data.phone,
-        id_number: parsed.data.id_number,
-        license_number: parsed.data.license_number,
-        license_expiry: parsed.data.license_expiry,
-        years_driving: parsed.data.years_driving,
-        vehicle_make_model: parsed.data.vehicle_make_model,
-        vehicle_plate: parsed.data.vehicle_plate,
-        vehicle_year: parsed.data.vehicle_year,
-        vehicle_color: parsed.data.vehicle_color,
-        vehicle_seats: parsed.data.vehicle_seats,
-        bio: parsed.data.bio ?? null,
-        profile_photo_path: profilePath,
-        vehicle_photo_path: vehiclePath,
-        proof_of_address_path: addressPath,
-      });
-      if (appError) throw appError;
-
-      toast.success("Account & driver application submitted! An admin will review it shortly.");
-    } catch (err: any) {
-      toast.error(err.message ?? "Sign-up failed");
-    } finally {
-      setLoading(false);
-    }
+    const { data, error } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/become-driver`,
+        data: { full_name: form.fullName, postal_code: form.postalCode, phone: form.phone },
+      },
+    });
+    setLoading(false);
+    if (error) { toast.error(error.message); return; }
+    if (data.session) navigate("/become-driver");
+    else toast.success("Check your email, then sign in to submit your driver application.");
   };
 
   return (
     <>
-      <h2 className="font-display text-2xl font-light mb-1">Apply to drive.</h2>
-      <p className="text-sm text-muted-foreground mb-6">Drivers must reside in Elsies River (7490). An admin reviews every application.</p>
-      <form onSubmit={submit} className="space-y-6">
-        <Section title="Account">
-          <div className="grid md:grid-cols-2 gap-4">
-            <FieldRow label="Full legal name"><Input value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} /></FieldRow>
-            <FieldRow label="Phone"><Input type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+27 ..." /></FieldRow>
-            <FieldRow label="Email"><Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} /></FieldRow>
-            <FieldRow label="Password"><Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} /></FieldRow>
-            <FieldRow label="Postal code">
-              <Input
-                inputMode="numeric"
-                maxLength={4}
-                value={form.postalCode}
-                onChange={e => setForm({ ...form, postalCode: e.target.value.replace(/\D/g, "") })}
-                placeholder="7490"
-              />
-            </FieldRow>
-            <FieldRow label="ID / passport number"><Input value={form.id_number} onChange={e => setForm({ ...form, id_number: e.target.value })} /></FieldRow>
-          </div>
-          <FieldRow label="Home address"><Input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} /></FieldRow>
-        </Section>
-
-        <Section title="Driver's license">
-          <div className="grid md:grid-cols-3 gap-4">
-            <FieldRow label="License number"><Input value={form.license_number} onChange={e => setForm({ ...form, license_number: e.target.value })} /></FieldRow>
-            <FieldRow label="Expiry"><Input type="date" value={form.license_expiry} onChange={e => setForm({ ...form, license_expiry: e.target.value })} /></FieldRow>
-            <FieldRow label="Years driving"><Input type="number" min={0} value={form.years_driving} onChange={e => setForm({ ...form, years_driving: e.target.value })} /></FieldRow>
-          </div>
-        </Section>
-
-        <Section title="Vehicle">
-          <div className="grid md:grid-cols-2 gap-4">
-            <FieldRow label="Make & model"><Input value={form.vehicle_make_model} onChange={e => setForm({ ...form, vehicle_make_model: e.target.value })} placeholder="2019 Honda Civic" /></FieldRow>
-            <FieldRow label="License plate"><Input value={form.vehicle_plate} onChange={e => setForm({ ...form, vehicle_plate: e.target.value })} /></FieldRow>
-            <FieldRow label="Year"><Input type="number" value={form.vehicle_year} onChange={e => setForm({ ...form, vehicle_year: e.target.value })} placeholder="2019" /></FieldRow>
-            <FieldRow label="Color"><Input value={form.vehicle_color} onChange={e => setForm({ ...form, vehicle_color: e.target.value })} /></FieldRow>
-            <FieldRow label="Seats (excl. driver)"><Input type="number" min={1} max={20} value={form.vehicle_seats} onChange={e => setForm({ ...form, vehicle_seats: e.target.value })} /></FieldRow>
-          </div>
-        </Section>
-
-        <Section title="Documents">
-          <div className="grid md:grid-cols-3 gap-4">
-            <FileField label="Profile photo" accept="image/*" file={files.profile} onChange={f => setFiles(p => ({ ...p, profile: f }))} />
-            <FileField label="Vehicle photo" accept="image/*" file={files.vehicle} onChange={f => setFiles(p => ({ ...p, vehicle: f }))} />
-            <FileField label="Proof of address" accept="image/*,application/pdf" file={files.address} onChange={f => setFiles(p => ({ ...p, address: f }))} />
-          </div>
-        </Section>
-
-        <FieldRow label="About you (optional)"><Textarea rows={3} value={form.bio} onChange={e => setForm({ ...form, bio: e.target.value })} placeholder="I've lived in Elsies River for 9 years..." /></FieldRow>
-
+      <h2 className="font-display text-2xl font-light mb-1">Create a driver account.</h2>
+      <p className="text-sm text-muted-foreground mb-6">After email confirmation, sign in and tap Drive to submit documents for admin review.</p>
+      <form onSubmit={submit} className="space-y-4">
+        <FieldRow label="Full name"><Input value={form.fullName} onChange={e => setForm({ ...form, fullName: e.target.value })} placeholder="Jane Doe" /></FieldRow>
+        <FieldRow label="Email"><Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="you@neighborhood.com" /></FieldRow>
+        <FieldRow label="Mobile number"><Input type="tel" inputMode="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="0821234567" /></FieldRow>
+        <FieldRow label="Password"><Input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="••••••••" /></FieldRow>
+        <FieldRow label="Postal code">
+          <Input
+            inputMode="numeric"
+            maxLength={4}
+            value={form.postalCode}
+            onChange={e => setForm({ ...form, postalCode: e.target.value.replace(/\D/g, "") })}
+            placeholder="7490"
+          />
+        </FieldRow>
         <Button type="submit" disabled={loading} className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary-glow font-semibold rounded-2xl">
-          {loading ? "Submitting..." : "Create driver account & apply"}
+          {loading ? "..." : "Create account to apply"}
         </Button>
       </form>
     </>
@@ -360,45 +252,6 @@ function Divider() {
       <div className="h-px flex-1 bg-border" />
       <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">or</span>
       <div className="h-px flex-1 bg-border" />
-    </div>
-  );
-}
-
-function FileField({ label, accept, file, onChange }: { label: string; accept: string; file?: File; onChange: (f: File | undefined) => void }) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  useEffect(() => {
-    if (!file || !file.type.startsWith("image/")) { setPreviewUrl(null); return; }
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
-  const isPdf = file?.type === "application/pdf";
-
-  return (
-    <div className="space-y-2">
-      <Label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</Label>
-      {!file ? (
-        <label className="flex items-center justify-center gap-2 h-32 rounded-xl border border-dashed border-border bg-input/50 cursor-pointer hover:bg-input transition-colors text-sm text-muted-foreground text-center px-3">
-          <Upload className="size-4 shrink-0" />
-          <span className="truncate">Choose file</span>
-          <input type="file" accept={accept} className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) onChange(f); }} />
-        </label>
-      ) : (
-        <div className="relative rounded-xl border border-border bg-input/50 overflow-hidden">
-          <button type="button" onClick={() => onChange(undefined)} className="absolute top-2 right-2 z-10 size-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors" aria-label="Remove">
-            <X className="size-4" />
-          </button>
-          {previewUrl ? (
-            <img src={previewUrl} alt={`${label} preview`} className="w-full h-32 object-cover" />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-32 text-muted-foreground gap-1">
-              <FileText className="size-8" />
-              {isPdf && <span className="text-[10px] font-mono">PDF</span>}
-            </div>
-          )}
-          <div className="px-3 py-2 text-xs truncate border-t border-border bg-background/40">{file.name}</div>
-        </div>
-      )}
     </div>
   );
 }
