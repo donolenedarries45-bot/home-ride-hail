@@ -37,6 +37,7 @@ interface Application {
 }
 
 interface Postal { postal_code: string; area_name: string; }
+interface RiderRow { id: string; full_name: string | null; phone: string | null; postal_code: string | null; created_at: string; }
 
 type Filter = "pending" | "approved" | "rejected" | "all";
 
@@ -98,14 +99,17 @@ export default function Admin() {
   const [notesById, setNotesById] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<Filter>("pending");
   const [stats, setStats] = useState<{ riders: number; drivers: number; admins: number; profiles: number } | null>(null);
+  const [riders, setRiders] = useState<RiderRow[]>([]);
+  const [showRiders, setShowRiders] = useState(false);
   const isAdmin = roles.includes("admin");
 
   const load = async () => {
-    const [a, p, rolesRes, profilesRes] = await Promise.all([
+    const [a, p, rolesRes, profilesRes, profilesList] = await Promise.all([
       supabase.from("driver_applications").select("*").order("created_at", { ascending: false }),
       supabase.from("approved_postal_codes").select("*").order("postal_code"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("profiles").select("id", { count: "exact", head: true }),
+      supabase.from("profiles").select("id, full_name, phone, postal_code, created_at").order("created_at", { ascending: false }),
     ]);
     setApps((a.data ?? []) as Application[]);
     setPostals((p.data ?? []) as Postal[]);
@@ -117,6 +121,8 @@ export default function Admin() {
       admins: uniq("admin"),
       profiles: profilesRes.count ?? 0,
     });
+    const riderIds = new Set(r.filter(x => x.role === "rider").map(x => x.user_id));
+    setRiders(((profilesList.data ?? []) as RiderRow[]).filter(pr => riderIds.has(pr.id)));
   };
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
@@ -195,19 +201,44 @@ export default function Admin() {
         <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl mb-10">Admin.</h1>
 
         {/* User stats */}
-        <section className="mb-10 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <section className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: "Total users", value: stats?.profiles ?? "—" },
-            { label: "Riders", value: stats?.riders ?? "—" },
-            { label: "Drivers", value: stats?.drivers ?? "—" },
-            { label: "Admins", value: stats?.admins ?? "—" },
+            { key: "profiles", label: "Total users", value: stats?.profiles ?? "—" },
+            { key: "riders", label: "Riders", value: stats?.riders ?? "—" },
+            { key: "drivers", label: "Drivers", value: stats?.drivers ?? "—" },
+            { key: "admins", label: "Admins", value: stats?.admins ?? "—" },
           ].map(s => (
-            <div key={s.label} className="surface rounded-2xl border border-border p-5">
+            <button
+              key={s.label}
+              onClick={() => s.key === "riders" && setShowRiders(v => !v)}
+              className={`surface rounded-2xl border border-border p-5 text-left transition-colors ${s.key === "riders" ? "hover:border-primary cursor-pointer" : "cursor-default"}`}
+            >
               <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{s.label}</p>
               <p className="font-display text-3xl mt-1">{s.value}</p>
-            </div>
+              {s.key === "riders" && <p className="text-[10px] text-muted-foreground mt-1">{showRiders ? "Hide list" : "Tap to view"}</p>}
+            </button>
           ))}
         </section>
+
+        {showRiders && (
+          <section className="mb-10 surface rounded-2xl border border-border p-5">
+            <h2 className="font-display text-lg mb-4">Registered riders ({riders.length})</h2>
+            <div className="grid gap-2">
+              {riders.map(r => (
+                <div key={r.id} className="flex items-center justify-between border border-border rounded-xl px-4 py-3 text-sm">
+                  <div>
+                    <p className="font-medium">{r.full_name || "Unnamed"}</p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {r.phone || "no phone"} · {r.postal_code || "—"}
+                    </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</p>
+                </div>
+              ))}
+              {riders.length === 0 && <p className="text-sm text-muted-foreground">No riders yet.</p>}
+            </div>
+          </section>
+        )}
 
         <SOSAlertsPanel />
 
