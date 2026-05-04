@@ -97,15 +97,26 @@ export default function Admin() {
   const [newArea, setNewArea] = useState("");
   const [notesById, setNotesById] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<Filter>("pending");
+  const [stats, setStats] = useState<{ riders: number; drivers: number; admins: number; profiles: number } | null>(null);
   const isAdmin = roles.includes("admin");
 
   const load = async () => {
-    const [a, p] = await Promise.all([
+    const [a, p, rolesRes, profilesRes] = await Promise.all([
       supabase.from("driver_applications").select("*").order("created_at", { ascending: false }),
       supabase.from("approved_postal_codes").select("*").order("postal_code"),
+      supabase.from("user_roles").select("user_id, role"),
+      supabase.from("profiles").select("id", { count: "exact", head: true }),
     ]);
     setApps((a.data ?? []) as Application[]);
     setPostals((p.data ?? []) as Postal[]);
+    const r = (rolesRes.data ?? []) as { user_id: string; role: string }[];
+    const uniq = (role: string) => new Set(r.filter(x => x.role === role).map(x => x.user_id)).size;
+    setStats({
+      riders: uniq("rider"),
+      drivers: uniq("driver"),
+      admins: uniq("admin"),
+      profiles: profilesRes.count ?? 0,
+    });
   };
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
@@ -182,6 +193,21 @@ export default function Admin() {
       <AppNav />
       <main className="mx-auto max-w-6xl px-6 py-12">
         <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl mb-10">Admin.</h1>
+
+        {/* User stats */}
+        <section className="mb-10 grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: "Total users", value: stats?.profiles ?? "—" },
+            { label: "Riders", value: stats?.riders ?? "—" },
+            { label: "Drivers", value: stats?.drivers ?? "—" },
+            { label: "Admins", value: stats?.admins ?? "—" },
+          ].map(s => (
+            <div key={s.label} className="surface rounded-2xl border border-border p-5">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{s.label}</p>
+              <p className="font-display text-3xl mt-1">{s.value}</p>
+            </div>
+          ))}
+        </section>
 
         <SOSAlertsPanel />
 

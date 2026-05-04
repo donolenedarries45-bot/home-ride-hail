@@ -77,12 +77,19 @@ export default function RiderHome() {
     if (!user || isDriver) { setNeedsDriverApp(false); setDriverAppSubmitted(false); return; }
     supabase
       .from("driver_applications")
-      .select("id")
+      .select("id, status, profile_photo_path, vehicle_photo_path, proof_of_address_path")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        setNeedsDriverApp(!data);
         setDriverAppSubmitted(!!data);
+        // Only nag when an application exists but is incomplete (missing required documents).
+        // Users who have never started an application are NOT pestered.
+        const incomplete = !!data && (
+          !data.profile_photo_path ||
+          !data.vehicle_photo_path ||
+          !data.proof_of_address_path
+        );
+        setNeedsDriverApp(incomplete);
       });
   }, [user, isDriver]);
 
