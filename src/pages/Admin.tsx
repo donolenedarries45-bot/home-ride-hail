@@ -97,15 +97,26 @@ export default function Admin() {
   const [newArea, setNewArea] = useState("");
   const [notesById, setNotesById] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<Filter>("pending");
+  const [stats, setStats] = useState<{ riders: number; drivers: number; admins: number; profiles: number } | null>(null);
   const isAdmin = roles.includes("admin");
 
   const load = async () => {
-    const [a, p] = await Promise.all([
+    const [a, p, rolesRes, profilesRes] = await Promise.all([
       supabase.from("driver_applications").select("*").order("created_at", { ascending: false }),
       supabase.from("approved_postal_codes").select("*").order("postal_code"),
+      supabase.from("user_roles").select("user_id, role"),
+      supabase.from("profiles").select("id", { count: "exact", head: true }),
     ]);
     setApps((a.data ?? []) as Application[]);
     setPostals((p.data ?? []) as Postal[]);
+    const r = (rolesRes.data ?? []) as { user_id: string; role: string }[];
+    const uniq = (role: string) => new Set(r.filter(x => x.role === role).map(x => x.user_id)).size;
+    setStats({
+      riders: uniq("rider"),
+      drivers: uniq("driver"),
+      admins: uniq("admin"),
+      profiles: profilesRes.count ?? 0,
+    });
   };
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
