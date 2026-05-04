@@ -137,7 +137,7 @@ export function CommissionDashboard() {
         {loading && <p className="text-muted-foreground text-sm">Loading…</p>}
         {!loading && wallets.length === 0 && <p className="text-muted-foreground text-sm">No drivers with wallets yet.</p>}
         {wallets.map(w => (
-          <div key={w.driver_id} className={`surface rounded-xl border p-4 grid grid-cols-1 md:grid-cols-5 gap-3 items-center ${w.is_suspended ? "border-destructive/40" : "border-border"}`}>
+          <div key={w.driver_id} className={`surface rounded-xl border p-4 grid grid-cols-1 md:grid-cols-6 gap-3 items-center ${w.is_suspended ? "border-destructive/40" : "border-border"}`}>
             <div className="md:col-span-2">
               <div className="flex items-center gap-2">
                 <p className="font-medium">{w.full_name}</p>
@@ -148,6 +148,15 @@ export function CommissionDashboard() {
             <Field label="Balance" value={rand(w.balance_cents)} accent={w.balance_cents < 0 ? "destructive" : "pulse"} />
             <Field label="Lifetime earned" value={rand(w.lifetime_earned_cents)} />
             <Field label="Commission" value={rand(w.lifetime_commission_cents)} accent="primary" />
+            <Button
+              type="button"
+              size="sm"
+              variant={w.is_suspended ? "default" : "destructive"}
+              onClick={() => toggleSuspension(w.driver_id, w.is_suspended)}
+              className="w-full"
+            >
+              {w.is_suspended ? "Unsuspend" : "Suspend"}
+            </Button>
           </div>
         ))}
       </div>
