@@ -99,14 +99,17 @@ export default function Admin() {
   const [notesById, setNotesById] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<Filter>("pending");
   const [stats, setStats] = useState<{ riders: number; drivers: number; admins: number; profiles: number } | null>(null);
+  const [riders, setRiders] = useState<RiderRow[]>([]);
+  const [showRiders, setShowRiders] = useState(false);
   const isAdmin = roles.includes("admin");
 
   const load = async () => {
-    const [a, p, rolesRes, profilesRes] = await Promise.all([
+    const [a, p, rolesRes, profilesRes, profilesList] = await Promise.all([
       supabase.from("driver_applications").select("*").order("created_at", { ascending: false }),
       supabase.from("approved_postal_codes").select("*").order("postal_code"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("profiles").select("id", { count: "exact", head: true }),
+      supabase.from("profiles").select("id, full_name, phone, postal_code, created_at").order("created_at", { ascending: false }),
     ]);
     setApps((a.data ?? []) as Application[]);
     setPostals((p.data ?? []) as Postal[]);
@@ -118,6 +121,8 @@ export default function Admin() {
       admins: uniq("admin"),
       profiles: profilesRes.count ?? 0,
     });
+    const riderIds = new Set(r.filter(x => x.role === "rider").map(x => x.user_id));
+    setRiders(((profilesList.data ?? []) as RiderRow[]).filter(pr => riderIds.has(pr.id)));
   };
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
