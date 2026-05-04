@@ -115,14 +115,19 @@ export default function Admin() {
     setPostals((p.data ?? []) as Postal[]);
     const r = (rolesRes.data ?? []) as { user_id: string; role: string }[];
     const uniq = (role: string) => new Set(r.filter(x => x.role === role).map(x => x.user_id)).size;
+    const allApps = (a.data ?? []) as Application[];
+    const approvedDriverIds = new Set(allApps.filter(x => x.status === "approved").map(x => x.user_id));
     setStats({
       riders: uniq("rider"),
-      drivers: uniq("driver"),
+      drivers: approvedDriverIds.size,
       admins: uniq("admin"),
       profiles: profilesRes.count ?? 0,
     });
-    const riderIds = new Set(r.filter(x => x.role === "rider").map(x => x.user_id));
-    setRiders(((profilesList.data ?? []) as RiderRow[]).filter(pr => riderIds.has(pr.id)));
+    const driverUserIds = new Set(r.filter(x => x.role === "driver").map(x => x.user_id));
+    // Riders = profiles that are NOT drivers/admins (pure riders only)
+    const adminUserIds = new Set(r.filter(x => x.role === "admin").map(x => x.user_id));
+    const allProfiles = (profilesList.data ?? []) as RiderRow[];
+    setRiders(allProfiles.filter(pr => !driverUserIds.has(pr.id) && !adminUserIds.has(pr.id)));
   };
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
