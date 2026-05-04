@@ -273,7 +273,7 @@ export default function BecomeDriver() {
               <div className="grid md:grid-cols-3 gap-5">
                 <FileField label="Profile photo" accept="image/*" file={files.profile} onChange={f => setFiles(p => ({ ...p, profile: f }))} />
                 <FileField label="Vehicle photo" accept="image/*" file={files.vehicle} onChange={f => setFiles(p => ({ ...p, vehicle: f }))} />
-                <FileField label="Proof of address" accept="image/*,application/pdf" file={files.address} onChange={f => setFiles(p => ({ ...p, address: f }))} />
+                <FileField label="Proof of address" accept="image/*,.heic,.heif,application/pdf,.pdf" file={files.address} onChange={f => setFiles(p => ({ ...p, address: f }))} />
               </div>
             </Section>
 
