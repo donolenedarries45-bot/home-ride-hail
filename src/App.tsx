@@ -10,6 +10,7 @@ import BecomeDriver from "./pages/BecomeDriver";
 import DriverDashboard from "./pages/DriverDashboard";
 import Admin from "./pages/Admin";
 import Feedback from "./pages/Feedback";
+import Profile from "./pages/Profile";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
