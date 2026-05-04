@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { MapPin, Navigation, Loader2, Menu, Clock, Users, ChevronUp, X } from "lucide-react";
 import { useFareEstimate } from "@/hooks/useFareEstimate";
 import { DriverProfileCard } from "@/components/DriverProfileCard";
+import { RideChat } from "@/components/RideChat";
 import { SOSButton } from "@/components/SOSButton";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useBroadcastLocation } from "@/hooks/useBroadcastLocation";
