@@ -193,6 +193,15 @@ export default function DriverDashboard() {
               <Detail icon={Navigation} label="Dropoff" value={myRide.dropoff_address} accent="pulse" />
             </div>
             {myRide.notes && <p className="text-sm text-muted-foreground italic mb-6">"{myRide.notes}"</p>}
+
+            <div className="mb-6">
+              <RiderProfileCard riderId={myRide.rider_id} />
+            </div>
+
+            <div className="mb-4">
+              <RideChat rideId={myRide.id} userId={user!.id} myRole="driver" />
+            </div>
+
             <div className="flex gap-3">
               {myRide.status === "accepted" && <Button onClick={() => updateStatus("in_progress")} className="bg-primary text-primary-foreground hover:bg-primary-glow">Start ride</Button>}
               {myRide.status === "in_progress" && <Button onClick={() => updateStatus("completed")} className="bg-pulse text-pulse-foreground hover:bg-pulse/90">Complete ride</Button>}
