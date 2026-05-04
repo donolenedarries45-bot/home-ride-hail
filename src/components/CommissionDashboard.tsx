@@ -69,6 +69,18 @@ export function CommissionDashboard() {
     load();
   };
 
+  const toggleSuspension = async (driverId: string, currentlySuspended: boolean) => {
+    const action = currentlySuspended ? "unsuspend" : "suspend";
+    if (!confirm(`Are you sure you want to ${action} this driver?`)) return;
+    const { error } = await supabase
+      .from("driver_wallets")
+      .update({ is_suspended: !currentlySuspended })
+      .eq("driver_id", driverId);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Driver ${action}ed`);
+    load();
+  };
+
   const totalOutstanding = wallets.reduce((sum, w) => sum + (w.balance_cents < 0 ? Math.abs(w.balance_cents) : 0), 0);
   const totalCommissionLifetime = wallets.reduce((sum, w) => sum + w.lifetime_commission_cents, 0);
   const suspendedCount = wallets.filter(w => w.is_suspended).length;
