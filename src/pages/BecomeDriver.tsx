@@ -122,7 +122,22 @@ export default function BecomeDriver() {
         .insert(insertRow)
         .select("id, status, postal_code, reviewer_notes")
         .single();
-      if (error) throw error;
+      if (error) {
+        // Already submitted (unique constraint on user_id) — load the existing one and show status
+        if ((error as any).code === "23505" || /duplicate key|already exists/i.test(error.message)) {
+          const { data: existingRow } = await supabase
+            .from("driver_applications")
+            .select("id, status, postal_code, reviewer_notes")
+            .eq("user_id", user!.id)
+            .maybeSingle();
+          if (existingRow) {
+            setExisting(existingRow as Application);
+            toast.message("You already submitted an application — here's its status.");
+            return;
+          }
+        }
+        throw error;
+      }
       setExisting(data as Application);
       toast.success("Application submitted!");
     } catch (err: any) {
