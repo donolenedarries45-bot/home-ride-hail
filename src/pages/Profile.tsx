@@ -37,18 +37,35 @@ export default function Profile() {
 
   const onPickFile = () => fileRef.current?.click();
 
+  const compressImage = async (file: File, maxDim = 800, quality = 0.85): Promise<Blob> => {
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+      const w = Math.round(bitmap.width * scale);
+      const h = Math.round(bitmap.height * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return file;
+      ctx.drawImage(bitmap, 0, 0, w, h);
+      const blob: Blob | null = await new Promise(res => canvas.toBlob(res, "image/jpeg", quality));
+      bitmap.close?.();
+      return blob && blob.size < file.size ? blob : file;
+    } catch { return file; }
+  };
+
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5 MB"); return; }
+    if (file.size > 10 * 1024 * 1024) { toast.error("Image must be under 10 MB"); return; }
     if (!file.type.startsWith("image/")) { toast.error("Please choose an image"); return; }
 
     setUploading(true);
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
+    const compressed = await compressImage(file);
+    const path = `${user.id}/avatar-${Date.now()}.jpg`;
     const { error: upErr } = await supabase.storage
       .from("rider-avatars")
-      .upload(path, file, { upsert: true, cacheControl: "3600", contentType: file.type });
+      .upload(path, compressed, { upsert: true, cacheControl: "3600", contentType: "image/jpeg" });
     if (upErr) { setUploading(false); toast.error(upErr.message); return; }
 
     const { data: pub } = supabase.storage.from("rider-avatars").getPublicUrl(path);
