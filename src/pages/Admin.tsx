@@ -37,6 +37,7 @@ interface Application {
 }
 
 interface Postal { postal_code: string; area_name: string; }
+interface RiderRow { id: string; full_name: string | null; phone: string | null; postal_code: string | null; created_at: string; }
 
 type Filter = "pending" | "approved" | "rejected" | "all";
 
