@@ -63,14 +63,27 @@ export default function BecomeDriver() {
 
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
+    const refetchExisting = async () => {
+      const { data } = await supabase
+        .from("driver_applications")
+        .select("id, status, postal_code, reviewer_notes")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!cancelled) setExisting((data as Application) ?? null);
+    };
     Promise.all([
       supabase.from("approved_postal_codes").select("postal_code, area_name"),
       supabase.from("driver_applications").select("id, status, postal_code, reviewer_notes").eq("user_id", user.id).maybeSingle(),
     ]).then(([pc, app]) => {
+      if (cancelled) return;
       setPostalCodes(pc.data ?? []);
       setExisting((app.data as Application) ?? null);
       setLoading(false);
     });
+    const onFocus = () => refetchExisting();
+    window.addEventListener("focus", onFocus);
+    return () => { cancelled = true; window.removeEventListener("focus", onFocus); };
   }, [user]);
 
   const uploadFile = async (file: File, kind: string): Promise<string> => {
@@ -122,7 +135,22 @@ export default function BecomeDriver() {
         .insert(insertRow)
         .select("id, status, postal_code, reviewer_notes")
         .single();
-      if (error) throw error;
+      if (error) {
+        // Already submitted (unique constraint on user_id) — load the existing one and show status
+        if ((error as any).code === "23505" || /duplicate key|already exists/i.test(error.message)) {
+          const { data: existingRow } = await supabase
+            .from("driver_applications")
+            .select("id, status, postal_code, reviewer_notes")
+            .eq("user_id", user!.id)
+            .maybeSingle();
+          if (existingRow) {
+            setExisting(existingRow as Application);
+            toast.message("You already submitted an application — here's its status.");
+            return;
+          }
+        }
+        throw error;
+      }
       setExisting(data as Application);
       toast.success("Application submitted!");
     } catch (err: any) {
