@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -53,16 +54,17 @@ const initialForm = {
 };
 
 export default function BecomeDriver() {
-  const { user } = useAuth();
+  const { user, roles, loading: authLoading } = useAuth();
   const [postalCodes, setPostalCodes] = useState<{ postal_code: string; area_name: string }[]>([]);
   const [existing, setExisting] = useState<Application | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState(initialForm);
   const [files, setFiles] = useState<{ profile?: File; vehicle?: File; address?: File }>({});
+  const isDriver = roles.includes("driver");
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || authLoading || isDriver) { setLoading(false); return; }
     let cancelled = false;
     const refetchExisting = async () => {
       const { data } = await supabase
@@ -84,7 +86,7 @@ export default function BecomeDriver() {
     const onFocus = () => refetchExisting();
     window.addEventListener("focus", onFocus);
     return () => { cancelled = true; window.removeEventListener("focus", onFocus); };
-  }, [user]);
+  }, [user, authLoading, isDriver]);
 
   const uploadFile = async (file: File, kind: string): Promise<string> => {
     const ext = file.name.split(".").pop() ?? "bin";
@@ -167,8 +169,10 @@ export default function BecomeDriver() {
         <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl mb-2">Drive with Kyk n Lyn.</h1>
         <p className="text-muted-foreground mb-10">Two checks: your zip code must be in our network, then a human approves you.</p>
 
-        {loading ? (
+        {authLoading || loading ? (
           <div className="text-muted-foreground">Loading...</div>
+        ) : isDriver ? (
+          <Navigate to="/driver" replace />
         ) : existing ? (
           <div className="surface rounded-3xl border border-border p-8 glow-border">
             {existing.status === "pending" && (
