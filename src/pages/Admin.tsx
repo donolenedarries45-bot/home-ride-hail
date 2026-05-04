@@ -100,7 +100,7 @@ export default function Admin() {
   const [filter, setFilter] = useState<Filter>("pending");
   const [stats, setStats] = useState<{ riders: number; drivers: number; admins: number; profiles: number } | null>(null);
   const [riders, setRiders] = useState<RiderRow[]>([]);
-  const [showRiders, setShowRiders] = useState(false);
+  const [showRiders, setShowRiders] = useState(true);
   const isAdmin = roles.includes("admin");
 
   const load = async () => {
@@ -117,17 +117,18 @@ export default function Admin() {
     const uniq = (role: string) => new Set(r.filter(x => x.role === role).map(x => x.user_id)).size;
     const allApps = (a.data ?? []) as Application[];
     const approvedDriverIds = new Set(allApps.filter(x => x.status === "approved").map(x => x.user_id));
-    setStats({
-      riders: uniq("rider"),
-      drivers: approvedDriverIds.size,
-      admins: uniq("admin"),
-      profiles: profilesRes.count ?? 0,
-    });
     const driverUserIds = new Set(r.filter(x => x.role === "driver").map(x => x.user_id));
     // Riders = profiles that are NOT drivers/admins (pure riders only)
     const adminUserIds = new Set(r.filter(x => x.role === "admin").map(x => x.user_id));
     const allProfiles = (profilesList.data ?? []) as RiderRow[];
-    setRiders(allProfiles.filter(pr => !driverUserIds.has(pr.id) && !adminUserIds.has(pr.id)));
+    const registeredRiders = allProfiles.filter(pr => !driverUserIds.has(pr.id) && !adminUserIds.has(pr.id));
+    setRiders(registeredRiders);
+    setStats({
+      riders: registeredRiders.length,
+      drivers: approvedDriverIds.size,
+      admins: uniq("admin"),
+      profiles: profilesRes.count ?? 0,
+    });
   };
 
   useEffect(() => { if (isAdmin) load(); }, [isAdmin]);
