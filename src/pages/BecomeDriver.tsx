@@ -90,7 +90,8 @@ export default function BecomeDriver() {
 
   // Compress images client-side before upload to keep files small (faster on slow networks).
   const compressImage = async (file: File, maxDim = 1600, quality = 0.82): Promise<Blob> => {
-    if (!file.type.startsWith("image/")) return file;
+    const isImage = file.type.startsWith("image/") && !/heic|heif/i.test(file.type);
+    if (!isImage) return file;
     try {
       const bitmap = await createImageBitmap(file);
       const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
@@ -108,15 +109,25 @@ export default function BecomeDriver() {
   };
 
   const uploadFile = async (file: File, kind: string): Promise<string> => {
-    const compressed = await compressImage(file);
-    const ext = compressed.type === "image/jpeg" ? "jpg" : (file.name.split(".").pop() ?? "bin");
+    let toUpload: Blob = file;
+    try { toUpload = await compressImage(file); } catch { toUpload = file; }
+    const originalExt = (file.name.split(".").pop() || "bin").toLowerCase();
+    const ext = toUpload.type === "image/jpeg" ? "jpg" : originalExt;
     const path = `${user!.id}/${kind}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("driver-documents").upload(path, compressed, {
+    const contentType = toUpload.type || file.type ||
+      (originalExt === "pdf" ? "application/pdf" :
+       /^(jpe?g)$/.test(originalExt) ? "image/jpeg" :
+       originalExt === "png" ? "image/png" :
+       /^(heic|heif)$/.test(originalExt) ? "image/heic" : "application/octet-stream");
+    const { error } = await supabase.storage.from("driver-documents").upload(path, toUpload, {
       upsert: true,
-      contentType: compressed.type || file.type,
+      contentType,
       cacheControl: "3600",
     });
-    if (error) throw error;
+    if (error) {
+      console.error(`Upload failed for ${kind}:`, error);
+      throw new Error(`${kind} upload failed: ${error.message}`);
+    }
     return path;
   };
 
@@ -262,7 +273,7 @@ export default function BecomeDriver() {
               <div className="grid md:grid-cols-3 gap-5">
                 <FileField label="Profile photo" accept="image/*" file={files.profile} onChange={f => setFiles(p => ({ ...p, profile: f }))} />
                 <FileField label="Vehicle photo" accept="image/*" file={files.vehicle} onChange={f => setFiles(p => ({ ...p, vehicle: f }))} />
-                <FileField label="Proof of address" accept="image/*,application/pdf" file={files.address} onChange={f => setFiles(p => ({ ...p, address: f }))} />
+                <FileField label="Proof of address" accept="image/*,.heic,.heif,application/pdf,.pdf" file={files.address} onChange={f => setFiles(p => ({ ...p, address: f }))} />
               </div>
             </Section>
 
