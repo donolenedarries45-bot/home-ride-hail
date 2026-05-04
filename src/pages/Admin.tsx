@@ -216,19 +216,28 @@ export default function Admin() {
           ].map(s => (
             <button
               key={s.label}
+              type="button"
+              disabled={s.key !== "riders"}
+              aria-expanded={s.key === "riders" ? showRiders : undefined}
               onClick={() => s.key === "riders" && setShowRiders(v => !v)}
-              className={`surface rounded-2xl border border-border p-5 text-left transition-colors ${s.key === "riders" ? "hover:border-primary cursor-pointer" : "cursor-default"}`}
+              className={`surface rounded-2xl border p-5 text-left transition-colors disabled:opacity-100 ${s.key === "riders" ? "border-primary/60 hover:border-primary cursor-pointer ring-1 ring-primary/20" : "border-border cursor-default"}`}
             >
               <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{s.label}</p>
               <p className="font-display text-3xl mt-1">{s.value}</p>
-              {s.key === "riders" && <p className="text-[10px] text-muted-foreground mt-1">{showRiders ? "Hide list" : "Tap to view"}</p>}
+              {s.key === "riders" && <p className="text-[10px] text-primary mt-1 font-medium">{showRiders ? "List shown below" : "Tap to show list"}</p>}
             </button>
           ))}
         </section>
 
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="font-display text-lg">Registered riders ({riders.length})</h2>
+          <Button type="button" variant="outline" size="sm" onClick={() => setShowRiders(v => !v)} className="border-border">
+            {showRiders ? "Hide riders" : `Show ${riders.length} riders`}
+          </Button>
+        </div>
+
         {showRiders && (
           <section className="mb-10 surface rounded-2xl border border-border p-5">
-            <h2 className="font-display text-lg mb-4">Registered riders ({riders.length})</h2>
             <div className="grid gap-2">
               {riders.map(r => (
                 <div key={r.id} className="flex items-center justify-between border border-border rounded-xl px-4 py-3 text-sm">
