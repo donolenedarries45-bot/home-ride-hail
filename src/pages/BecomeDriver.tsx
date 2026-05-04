@@ -63,14 +63,27 @@ export default function BecomeDriver() {
 
   useEffect(() => {
     if (!user) return;
+    let cancelled = false;
+    const refetchExisting = async () => {
+      const { data } = await supabase
+        .from("driver_applications")
+        .select("id, status, postal_code, reviewer_notes")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!cancelled) setExisting((data as Application) ?? null);
+    };
     Promise.all([
       supabase.from("approved_postal_codes").select("postal_code, area_name"),
       supabase.from("driver_applications").select("id, status, postal_code, reviewer_notes").eq("user_id", user.id).maybeSingle(),
     ]).then(([pc, app]) => {
+      if (cancelled) return;
       setPostalCodes(pc.data ?? []);
       setExisting((app.data as Application) ?? null);
       setLoading(false);
     });
+    const onFocus = () => refetchExisting();
+    window.addEventListener("focus", onFocus);
+    return () => { cancelled = true; window.removeEventListener("focus", onFocus); };
   }, [user]);
 
   const uploadFile = async (file: File, kind: string): Promise<string> => {
