@@ -194,6 +194,21 @@ export default function Admin() {
       <main className="mx-auto max-w-6xl px-6 py-12">
         <h1 className="font-display font-light leading-[0.95] tracking-tight text-3xl mb-10">Admin.</h1>
 
+        {/* User stats */}
+        <section className="mb-10 grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: "Total users", value: stats?.profiles ?? "—" },
+            { label: "Riders", value: stats?.riders ?? "—" },
+            { label: "Drivers", value: stats?.drivers ?? "—" },
+            { label: "Admins", value: stats?.admins ?? "—" },
+          ].map(s => (
+            <div key={s.label} className="surface rounded-2xl border border-border p-5">
+              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{s.label}</p>
+              <p className="font-display text-3xl mt-1">{s.value}</p>
+            </div>
+          ))}
+        </section>
+
         <SOSAlertsPanel />
 
         <CommissionDashboard />
