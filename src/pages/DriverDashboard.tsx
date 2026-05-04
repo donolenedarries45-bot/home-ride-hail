@@ -10,6 +10,8 @@ import { DriverWallet } from "@/components/DriverWallet";
 import { CompleteRideDialog } from "@/components/CompleteRideDialog";
 import { SOSButton } from "@/components/SOSButton";
 import { MapView } from "@/components/MapView";
+import { RiderProfileCard } from "@/components/RiderProfileCard";
+import { RideChat } from "@/components/RideChat";
 
 interface Ride {
   id: string;
