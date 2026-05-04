@@ -88,10 +88,34 @@ export default function BecomeDriver() {
     return () => { cancelled = true; window.removeEventListener("focus", onFocus); };
   }, [user, authLoading, isDriver]);
 
+  // Compress images client-side before upload to keep files small (faster on slow networks).
+  const compressImage = async (file: File, maxDim = 1600, quality = 0.82): Promise<Blob> => {
+    if (!file.type.startsWith("image/")) return file;
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+      const w = Math.round(bitmap.width * scale);
+      const h = Math.round(bitmap.height * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return file;
+      ctx.drawImage(bitmap, 0, 0, w, h);
+      const blob: Blob | null = await new Promise(res => canvas.toBlob(res, "image/jpeg", quality));
+      bitmap.close?.();
+      return blob && blob.size < file.size ? blob : file;
+    } catch { return file; }
+  };
+
   const uploadFile = async (file: File, kind: string): Promise<string> => {
-    const ext = file.name.split(".").pop() ?? "bin";
+    const compressed = await compressImage(file);
+    const ext = compressed.type === "image/jpeg" ? "jpg" : (file.name.split(".").pop() ?? "bin");
     const path = `${user!.id}/${kind}-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("driver-documents").upload(path, file, { upsert: true });
+    const { error } = await supabase.storage.from("driver-documents").upload(path, compressed, {
+      upsert: true,
+      contentType: compressed.type || file.type,
+      cacheControl: "3600",
+    });
     if (error) throw error;
     return path;
   };
