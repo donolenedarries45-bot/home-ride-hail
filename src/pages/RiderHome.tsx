@@ -49,6 +49,7 @@ export default function RiderHome() {
   const [sheetExpanded, setSheetExpanded] = useState(false);
   const fare = useFareEstimate(pickup, dropoff);
   const [needsDriverApp, setNeedsDriverApp] = useState(false);
+  const [driverAppSubmitted, setDriverAppSubmitted] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("driver-app-banner-dismissed") === "1";
@@ -72,13 +73,16 @@ export default function RiderHome() {
   }, []);
 
   useEffect(() => {
-    if (!user || isDriver) { setNeedsDriverApp(false); return; }
+    if (!user || isDriver) { setNeedsDriverApp(false); setDriverAppSubmitted(false); return; }
     supabase
       .from("driver_applications")
       .select("id")
       .eq("user_id", user.id)
       .maybeSingle()
-      .then(({ data }) => setNeedsDriverApp(!data));
+      .then(({ data }) => {
+        setNeedsDriverApp(!data);
+        setDriverAppSubmitted(!!data);
+      });
   }, [user, isDriver]);
 
   useEffect(() => {
@@ -209,7 +213,7 @@ export default function RiderHome() {
               <Link to="/" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Ride</Link>
               {isDriver
                 ? <Link to="/driver" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Drive</Link>
-                : <Link to="/become-driver" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">Finish driver application</Link>}
+                : <Link to="/become-driver" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">{driverAppSubmitted ? "Driver application status" : "Become a driver"}</Link>}
               {isAdmin && <Link to="/admin" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium text-primary">Admin</Link>}
               <Link to="/feedback" className="px-4 py-3 rounded-xl hover:bg-secondary text-sm font-medium">💬 Send feedback</Link>
               <button
