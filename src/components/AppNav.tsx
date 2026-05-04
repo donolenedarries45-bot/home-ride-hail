@@ -18,6 +18,7 @@ export function AppNav() {
           {user && (
             <>
               <Link to="/" className="px-2 md:px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Ride</Link>
+              <Link to="/profile" className="px-2 md:px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Profile</Link>
               {isDriver && (
                 <Link to="/driver" className="px-2 md:px-3 py-1.5 text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Drive</Link>
               )}

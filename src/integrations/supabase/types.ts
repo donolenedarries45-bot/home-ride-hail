@@ -370,6 +370,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ride_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          read_at: string | null
+          ride_id: string
+          sender_id: string
+          sender_role: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          ride_id: string
+          sender_id: string
+          sender_role: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          ride_id?: string
+          sender_id?: string
+          sender_role?: string
+        }
+        Relationships: []
+      }
       ride_payments: {
         Row: {
           amount_cents: number

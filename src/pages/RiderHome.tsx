@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { MapPin, Navigation, Loader2, Menu, Clock, Users, ChevronUp, X } from "lucide-react";
 import { useFareEstimate } from "@/hooks/useFareEstimate";
 import { DriverProfileCard } from "@/components/DriverProfileCard";
+import { RideChat } from "@/components/RideChat";
 import { SOSButton } from "@/components/SOSButton";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useBroadcastLocation } from "@/hooks/useBroadcastLocation";
@@ -299,8 +300,11 @@ export default function RiderHome() {
             </div>
 
             {activeRide.driver_id && (
-              <div className="mt-4">
+              <div className="mt-4 space-y-3">
                 <DriverProfileCard driverId={activeRide.driver_id} />
+                {(activeRide.status === "accepted" || activeRide.status === "in_progress") && (
+                  <RideChat rideId={activeRide.id} userId={user!.id} myRole="rider" />
+                )}
               </div>
             )}
 
