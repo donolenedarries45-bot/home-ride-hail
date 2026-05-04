@@ -38,6 +38,7 @@ const App = () => (
             <Route path="/driver" element={<Protected><DriverDashboard /></Protected>} />
             <Route path="/admin" element={<Protected><Admin /></Protected>} />
             <Route path="/feedback" element={<Protected><Feedback /></Protected>} />
+            <Route path="/profile" element={<Protected><Profile /></Protected>} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="*" element={<NotFound />} />
