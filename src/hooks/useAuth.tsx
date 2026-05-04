@@ -32,10 +32,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
+        setLoading(true);
         // defer to avoid deadlock
-        setTimeout(() => loadRoles(s.user.id), 0);
+        setTimeout(() => loadRoles(s.user.id).finally(() => setLoading(false)), 0);
       } else {
         setRoles([]);
+        setLoading(false);
       }
     });
 
