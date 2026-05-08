@@ -1,0 +1,9 @@
+{
+  "appId": "app.lovable.892d9d546ddc4641a98d17abde36ce1f",
+  "appName": "kyk-n-lyn",
+  "webDir": "dist",
+  "server": {
+    "url": "https://892d9d54-6ddc-4641-a98d-17abde36ce1f.lovableproject.com?forceHideBadge=true",
+    "cleartext": true
+  }
+}
